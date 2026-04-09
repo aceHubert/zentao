@@ -5,6 +5,24 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@ace-aitools/zentao-mcp@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@ace-aitools/zentao-mcp@workspace:."
+  dependencies:
+    "@modelcontextprotocol/sdk": ^1.25.2
+    "@types/crypto-js": ^4.2.2
+    "@types/node": ^25.0.9
+    axios: ^1.13.2
+    crypto-js: ^4.2.0
+    dotenv: ^17.2.3
+    esbuild: ^0.27.2
+    ts-node: ^10.9.2
+    typescript: ^5.9.3
+  bin:
+    zentao-mcp: dist/bundle.cjs
+  languageName: unknown
+  linkType: soft
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -1451,24 +1469,6 @@ __metadata:
   checksum: 2c487b0e149e746ef48cda9f8bad10fc83693cd69d7f9dcd8be4214e985de33a29c9e24f3c0d6bcf2288427040a8947406ab27f7af67ee9456e6b84854f02dd6
   languageName: node
   linkType: hard
-
-"zentao-mcp-server@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "zentao-mcp-server@workspace:."
-  dependencies:
-    "@modelcontextprotocol/sdk": ^1.25.2
-    "@types/crypto-js": ^4.2.2
-    "@types/node": ^25.0.9
-    axios: ^1.13.2
-    crypto-js: ^4.2.0
-    dotenv: ^17.2.3
-    esbuild: ^0.27.2
-    ts-node: ^10.9.2
-    typescript: ^5.9.3
-  bin:
-    zentao-mcp: dist/bundle.cjs
-  languageName: unknown
-  linkType: soft
 
 "zod-to-json-schema@npm:^3.25.1":
   version: 3.25.2
