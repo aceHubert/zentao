@@ -1,0 +1,62 @@
+{
+  "name": "@ace-aitools/zentao-mcp",
+  "version": "1.0.0",
+  "author": "FivePointTex",
+  "license": "MIT",
+  "description": "禅道 MCP Server - 让 AI 助手能够管理禅道中的 Bug、需求和测试用例",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "@ace-aitools/zentao-mcp": "dist/bundle.cjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "env.example",
+    ".npmrc"
+  ],
+  "keywords": [
+    "mcp",
+    "zentao",
+    "bug-tracking",
+    "ai-assistant",
+    "cursor",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aceHubert/zentao-mcp.git"
+  },
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "npm run typecheck && npm run build:esm && npm run bundle",
+    "build:esm": "esbuild src/index.ts --bundle --packages=external --platform=node --target=node18 --format=esm --outfile=dist/index.js",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/bundle.cjs --format=cjs",
+    "start": "node dist/bundle.cjs",
+    "dev": "node --loader ts-node/esm --experimental-specifier-resolution=node src/index.ts",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "axios": "^1.13.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^25.0.9",
+    "esbuild": "^0.27.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalResolver": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
