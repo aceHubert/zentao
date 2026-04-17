@@ -26,13 +26,7 @@ import type {
 import type { IZentaoClient } from "./client.interface";
 import { ZentaoClientLegacy } from "./client-legacy";
 
-type ListEnvelopeKey =
-  | "bugs"
-  | "stories"
-  | "testcases"
-  | "products"
-  | "projects"
-  | "users";
+type ListEnvelopeKey = "bugs" | "stories" | "testcases" | "products" | "projects" | "users";
 
 type MaybeRecord = Record<string, unknown>;
 
@@ -62,9 +56,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     this.legacyClient = new ZentaoClientLegacy(config);
     this.currentAccount = config.account;
 
-    const baseURL = config.url.endsWith("/")
-      ? config.url.slice(0, -1)
-      : config.url;
+    const baseURL = config.url.endsWith("/") ? config.url.slice(0, -1) : config.url;
 
     const axiosConfig: Parameters<typeof axios.create>[0] = {
       baseURL,
@@ -102,24 +94,15 @@ export class ZentaoClientV2 implements IZentaoClient {
 
       this.token = token;
       this.isLoggedIn = true;
-      this.http.defaults.headers.common.token = token;
-      this.currentAccount =
-        this.pickString(payload, ["account"]) ?? this.config.account;
+      this.http.defaults.headers.common.token = this.token;
+      this.currentAccount = this.pickString(payload, ["account"]) ?? this.config.account;
       return true;
     } catch (error) {
-      throw new Error(
-        `禅道 v2 登录失败: ${
-          error instanceof Error ? error.message : "未知错误"
-        }`,
-      );
+      throw new Error(`禅道 v2 登录失败: ${error instanceof Error ? error.message : "未知错误"}`);
     }
   }
 
-  async getBugs(
-    productID: number,
-    browseType?: string,
-    limit?: number,
-  ): Promise<Bug[]> {
+  async getBugs(productID: number, browseType?: string, limit?: number): Promise<Bug[]> {
     await this.ensureLogin();
     const response = await this.http.get(
       `/api.php/v2/products/${productID}/bugs${this.buildQuery({
@@ -163,8 +146,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     if (params.task !== undefined) payload.task = params.task;
     if (params.story !== undefined) payload.story = params.story;
     if (params.deadline !== undefined) payload.deadline = params.deadline;
-    if (params.openedBuild !== undefined)
-      payload.openedBuild = params.openedBuild;
+    if (params.openedBuild !== undefined) payload.openedBuild = params.openedBuild;
     if (params.assignedTo !== undefined) payload.assignedTo = params.assignedTo;
     if (params.project !== undefined) payload.project = params.project;
 
@@ -209,11 +191,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     }
   }
 
-  async getStories(
-    productID: number,
-    browseType?: string,
-    limit?: number,
-  ): Promise<Story[]> {
+  async getStories(productID: number, browseType?: string, limit?: number): Promise<Story[]> {
     await this.ensureLogin();
     const response = await this.http.get(
       `/api.php/v2/products/${productID}/stories${this.buildQuery({
@@ -279,10 +257,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     }
   }
 
-  async getTestCases(
-    productID: number,
-    limit = 100,
-  ): Promise<TestCaseListResponse> {
+  async getTestCases(productID: number, limit = 100): Promise<TestCaseListResponse> {
     await this.ensureLogin();
     const response = await this.http.get(
       `/api.php/v2/products/${productID}/testcases${this.buildQuery({
@@ -418,10 +393,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     return users.find((user) => user.account === this.currentAccount) ?? null;
   }
 
-  async getDocSpaceData(
-    type: "product" | "project",
-    spaceID: number,
-  ): Promise<DocSpaceData> {
+  async getDocSpaceData(type: "product" | "project", spaceID: number): Promise<DocSpaceData> {
     return this.legacyClient.getDocSpaceData(type, spaceID);
   }
 
@@ -437,9 +409,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     return this.legacyClient.editDoc(params);
   }
 
-  async createDocModule(
-    params: CreateDocModuleParams,
-  ): Promise<{ id: number; name: string }> {
+  async createDocModule(params: CreateDocModuleParams): Promise<{ id: number; name: string }> {
     return this.legacyClient.createDocModule(params);
   }
 
@@ -447,10 +417,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     return this.legacyClient.editDocModule(params);
   }
 
-  async readFile(
-    fileID: number,
-    fileType: string,
-  ): Promise<ZentaoFileReadResult> {
+  async readFile(fileID: number, fileType: string): Promise<ZentaoFileReadResult> {
     return this.legacyClient.readFile(fileID, fileType);
   }
 
@@ -460,9 +427,7 @@ export class ZentaoClientV2 implements IZentaoClient {
     }
   }
 
-  private buildQuery(
-    params: Record<string, string | number | undefined>,
-  ): string {
+  private buildQuery(params: Record<string, string | number | undefined>): string {
     const searchParams = new URLSearchParams();
 
     for (const [key, value] of Object.entries(params)) {

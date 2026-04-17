@@ -15,11 +15,7 @@ const isMcpMessage = (str: string): boolean => {
 };
 
 // stdout: 只允许 MCP 协议消息通过，其他静默丢弃
-process.stdout.write = (
-  chunk: any,
-  encodingOrCallback?: any,
-  callback?: any,
-): boolean => {
+process.stdout.write = (chunk: any, encodingOrCallback?: any, callback?: any): boolean => {
   const str = typeof chunk === "string" ? chunk : chunk.toString();
   if (isMcpMessage(str)) {
     return originalStdoutWrite(chunk, encodingOrCallback, callback);
@@ -31,18 +27,10 @@ process.stdout.write = (
 };
 
 // stderr: 过滤掉 dotenv 等第三方库的输出
-process.stderr.write = (
-  chunk: any,
-  encodingOrCallback?: any,
-  callback?: any,
-): boolean => {
+process.stderr.write = (chunk: any, encodingOrCallback?: any, callback?: any): boolean => {
   const str = typeof chunk === "string" ? chunk : chunk.toString();
   // 过滤掉 dotenv 的日志
-  if (
-    str.includes("dotenv") ||
-    str.includes("injecting env") ||
-    str.includes("dotenvx")
-  ) {
+  if (str.includes("dotenv") || str.includes("injecting env") || str.includes("dotenvx")) {
     if (typeof encodingOrCallback === "function") encodingOrCallback();
     else if (callback) callback();
     return true;
@@ -58,7 +46,11 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import dotenv from "dotenv";
-import { normalizeZentaoVersion, createZentaoClient, type ZentaoClientVersion } from "./zentao-clients";
+import {
+  normalizeZentaoVersion,
+  createZentaoClient,
+  type ZentaoClientVersion,
+} from "./zentao-clients";
 import { BugType, BugSeverity, TestCaseType, TestCaseStep, StoryCategory } from "./types";
 
 // 加载环境变量
@@ -78,9 +70,7 @@ if (!ZENTAO_URL || !ZENTAO_ACCOUNT || !ZENTAO_PASSWORD) {
   console.error("  ZENTAO_ACCOUNT - 禅道用户名");
   console.error("  ZENTAO_PASSWORD - 禅道密码");
   console.error("  ZENTAO_VERSION - 客户端版本（可选，支持 legacy / v1 / v2）");
-  console.error(
-    "  ZENTAO_SKIP_SSL - 是否跳过SSL验证（可选，自签名证书时设为 true）",
-  );
+  console.error("  ZENTAO_SKIP_SSL - 是否跳过SSL验证（可选，自签名证书时设为 true）");
   process.exit(1);
 }
 
@@ -89,9 +79,7 @@ let zentaoVersion: ZentaoClientVersion;
 try {
   zentaoVersion = normalizeZentaoVersion(ZENTAO_VERSION);
 } catch (error) {
-  console.error(
-    error instanceof Error ? error.message : "ZENTAO_VERSION 配置错误",
-  );
+  console.error(error instanceof Error ? error.message : "ZENTAO_VERSION 配置错误");
   process.exit(1);
 }
 
@@ -119,8 +107,7 @@ const tools: Tool[] = [
         action: {
           type: "string",
           enum: ["list", "view", "create", "resolve", "close"],
-          description:
-            "操作类型: list-列表, view-详情, create-创建, resolve-解决, close-关闭",
+          description: "操作类型: list-列表, view-详情, create-创建, resolve-解决, close-关闭",
         },
         // 查询参数
         bugID: {
@@ -219,8 +206,7 @@ const tools: Tool[] = [
         action: {
           type: "string",
           enum: ["list", "view", "create", "close"],
-          description:
-            "操作类型: list-列表, view-详情, create-创建, close-关闭",
+          description: "操作类型: list-列表, view-详情, create-创建, close-关闭",
         },
         // 查询参数
         storyID: {
@@ -253,15 +239,7 @@ const tools: Tool[] = [
         title: { type: "string", description: "需求标题（create 时必填）" },
         category: {
           type: "string",
-          enum: [
-            "feature",
-            "interface",
-            "performance",
-            "safe",
-            "experience",
-            "improve",
-            "other",
-          ],
+          enum: ["feature", "interface", "performance", "safe", "experience", "improve", "other"],
           description:
             "需求类型: feature-功能, interface-接口, performance-性能, safe-安全, experience-体验, improve-改进, other-其他",
         },
@@ -297,15 +275,7 @@ const tools: Tool[] = [
         // 关闭参数
         closedReason: {
           type: "string",
-          enum: [
-            "done",
-            "subdivided",
-            "duplicate",
-            "postponed",
-            "willnotdo",
-            "cancel",
-            "bydesign",
-          ],
+          enum: ["done", "subdivided", "duplicate", "postponed", "willnotdo", "cancel", "bydesign"],
           description:
             "关闭原因（close 时必填）: done-已完成, subdivided-已细分, duplicate-重复, postponed-延期, willnotdo-不做, cancel-取消, bydesign-设计如此",
         },
@@ -442,15 +412,7 @@ const tools: Tool[] = [
       properties: {
         action: {
           type: "string",
-          enum: [
-            "tree",
-            "view",
-            "create",
-            "edit",
-            "createModule",
-            "editModule",
-            "readFile",
-          ],
+          enum: ["tree", "view", "create", "edit", "createModule", "editModule", "readFile"],
           description:
             "操作类型: tree-获取文档空间树（包含目录和文档）, view-文档详情, create-创建文档, edit-编辑文档, createModule-创建目录, editModule-编辑目录, readFile-读取附件/图片内容",
         },
@@ -536,7 +498,7 @@ const tools: Tool[] = [
 
 const server = new Server(
   {
-    name: "zentao-mcp",
+    name: "@ace-zentao/mcp",
     version: "1.0.0",
   },
   {
@@ -627,9 +589,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             result = await zentaoClient.getBug(bugID);
             if (!result) {
               return {
-                content: [
-                  { type: "text", text: `Bug #${bugID} 不存在或无权限查看` },
-                ],
+                content: [{ type: "text", text: `Bug #${bugID} 不存在或无权限查看` }],
                 isError: true,
               };
             }
@@ -682,9 +642,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             });
             result = {
               success: resolveSuccess,
-              message: resolveSuccess
-                ? `Bug #${bugID} 已解决`
-                : `Bug #${bugID} 解决失败`,
+              message: resolveSuccess ? `Bug #${bugID} 已解决` : `Bug #${bugID} 解决失败`,
             };
             break;
 
@@ -701,9 +659,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             });
             result = {
               success: closeSuccess,
-              message: closeSuccess
-                ? `Bug #${bugID} 已关闭`
-                : `Bug #${bugID} 关闭失败`,
+              message: closeSuccess ? `Bug #${bugID} 已关闭` : `Bug #${bugID} 关闭失败`,
             };
             break;
 
@@ -767,11 +723,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 isError: true,
               };
             }
-            result = await zentaoClient.getStories(
-              productID,
-              browseType,
-              limit,
-            );
+            result = await zentaoClient.getStories(productID, browseType, limit);
             break;
 
           case "view":
@@ -784,23 +736,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             result = await zentaoClient.getStory(storyID);
             if (!result) {
               return {
-                content: [
-                  { type: "text", text: `需求 #${storyID} 不存在或无权限查看` },
-                ],
+                content: [{ type: "text", text: `需求 #${storyID} 不存在或无权限查看` }],
                 isError: true,
               };
             }
             break;
 
           case "create":
-            if (
-              !productID ||
-              !title ||
-              !category ||
-              !pri ||
-              !spec ||
-              !reviewer
-            ) {
+            if (!productID || !title || !category || !pri || !spec || !reviewer) {
               return {
                 content: [
                   {
@@ -844,9 +787,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             });
             result = {
               success,
-              message: success
-                ? `需求 #${storyID} 已关闭`
-                : `需求 #${storyID} 关闭失败`,
+              message: success ? `需求 #${storyID} 已关闭` : `需求 #${storyID} 关闭失败`,
             };
             break;
 
@@ -861,29 +802,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // 测试用例操作
       case "zentao_testcases": {
-        const {
-          action,
-          caseID,
-          productID,
-          limit,
-          title,
-          type,
-          steps,
-          pri,
-          precondition,
-          story,
-        } = args as {
-          action: string;
-          caseID?: number;
-          productID?: number;
-          limit?: number;
-          title?: string;
-          type?: TestCaseType;
-          steps?: TestCaseStep[];
-          pri?: number;
-          precondition?: string;
-          story?: number;
-        };
+        const { action, caseID, productID, limit, title, type, steps, pri, precondition, story } =
+          args as {
+            action: string;
+            caseID?: number;
+            productID?: number;
+            limit?: number;
+            title?: string;
+            type?: TestCaseType;
+            steps?: TestCaseStep[];
+            pri?: number;
+            precondition?: string;
+            story?: number;
+          };
 
         switch (action) {
           case "list":
@@ -1058,9 +989,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             result = await zentaoClient.getUser(userID);
             if (!result) {
               return {
-                content: [
-                  { type: "text", text: `用户 #${userID} 不存在或无权限查看` },
-                ],
+                content: [{ type: "text", text: `用户 #${userID} 不存在或无权限查看` }],
                 isError: true,
               };
             }
@@ -1094,8 +1023,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           libID,
           docID,
           moduleID,
-          fileID,
-          fileType,
           title,
           content,
           keywords,
@@ -1110,8 +1037,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           libID?: number;
           docID?: number;
           moduleID?: number;
-          fileID?: number;
-          fileType?: string;
           title?: string;
           content?: string;
           keywords?: string;
@@ -1126,9 +1051,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // 获取文档空间树（包含文档库、目录和文档）
             if (!spaceType || !spaceID) {
               return {
-                content: [
-                  { type: "text", text: "缺少必要参数: spaceType 和 spaceID" },
-                ],
+                content: [{ type: "text", text: "缺少必要参数: spaceType 和 spaceID" }],
                 isError: true,
               };
             }
@@ -1138,18 +1061,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           case "view":
             if (!docID) {
               return {
-                content: [
-                  { type: "text", text: "缺少必要参数: docID（文档 ID）" },
-                ],
+                content: [{ type: "text", text: "缺少必要参数: docID（文档 ID）" }],
                 isError: true,
               };
             }
             result = await zentaoClient.getDoc(docID);
             if (!result) {
               return {
-                content: [
-                  { type: "text", text: `文档 #${docID} 不存在或无权限查看` },
-                ],
+                content: [{ type: "text", text: `文档 #${docID} 不存在或无权限查看` }],
                 isError: true,
               };
             }
@@ -1181,9 +1100,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           case "edit":
             if (!docID) {
               return {
-                content: [
-                  { type: "text", text: "缺少必要参数: docID（文档 ID）" },
-                ],
+                content: [{ type: "text", text: "缺少必要参数: docID（文档 ID）" }],
                 isError: true,
               };
             }

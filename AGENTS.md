@@ -10,23 +10,28 @@
 - **运行时**: Node.js
 - **框架**: @modelcontextprotocol/sdk
 - **HTTP 客户端**: Axios
-- **构建工具**: tsup (ESM + CJS 双格式)
+- **构建工具**: esbuild (ESM + CJS 双格式)
 
 ## 项目结构
 
 ```
-zentao-mcp/
-├── src/
-│   ├── index.ts                    # MCP Server 入口，注册所有 tools
-│   ├── types.ts                    # TypeScript 类型定义
-│   └── zentao-clients/             # 禅道 API 客户端实现
-│       ├── client.interface.ts     # 客户端接口定义
-│       ├── client-legacy.ts        # 内置 API 客户端
-│       ├── client-v1.ts            # REST API v1 客户端
-│       ├── client-v2.ts            # REST API v2 客户端
-│       └── index.ts                # 客户端导出入口
-├── README.md                       # 用户使用文档
-└── package.json                    # 项目配置
+zentao/
+├── packages/
+│   └── zentao-mcp/
+│       ├── src/
+│       │   ├── index.ts                # MCP Server 入口，注册所有 tools
+│       │   ├── types.ts                # TypeScript 类型定义
+│       │   └── zentao-clients/         # 禅道 API 客户端实现
+│       │       ├── client.interface.ts # 客户端接口定义
+│       │       ├── client-legacy.ts    # 内置 API 客户端
+│       │       ├── client-v1.ts        # REST API v1 客户端
+│       │       ├── client-v2.ts        # REST API v2 客户端
+│       │       └── index.ts            # 客户端导出入口
+│       ├── package.json                # 发布包配置
+│       └── tsconfig.json               # 子包 TypeScript 配置
+├── README.md                           # 仓库文档
+├── package.json                        # Monorepo workspace 配置
+└── tsconfig.base.json                  # 共享 TypeScript 配置
 ```
 
 ## 开发规范
@@ -34,7 +39,7 @@ zentao-mcp/
 ### 代码风格
 
 1. **注释规范**: 使用 JSDoc 风格注释导出的函数和接口
-2. **命名规范**: 
+2. **命名规范**:
    - 工具名: `zentao_{action}_{resource}` 或 `zentao_{resource}` (使用 action 参数)
    - 类型名: PascalCase
    - 变量/函数: camelCase
@@ -77,34 +82,35 @@ zentao_get_bugs, zentao_get_bug, zentao_create_bug, zentao_resolve_bug...
 
 文档工具使用内置 API，支持以下操作：
 
-| action | 说明 | 必需参数 |
-|--------|------|---------|
-| `tree` | 获取文档空间树（目录+文档） | `spaceType`, `spaceID` |
-| `view` | 获取文档详情 | `docID` |
-| `create` | 创建文档 | `libID`, `title` |
-| `edit` | 编辑文档 | `docID` |
-| `createModule` | 创建目录 | `libID`, `moduleName`, `spaceID` |
-| `editModule` | 编辑目录 | `moduleID`, `moduleName`, `libID` |
+| action         | 说明                        | 必需参数                          |
+| -------------- | --------------------------- | --------------------------------- |
+| `tree`         | 获取文档空间树（目录+文档） | `spaceType`, `spaceID`            |
+| `view`         | 获取文档详情                | `docID`                           |
+| `create`       | 创建文档                    | `libID`, `title`                  |
+| `edit`         | 编辑文档                    | `docID`                           |
+| `createModule` | 创建目录                    | `libID`, `moduleName`, `spaceID`  |
+| `editModule`   | 编辑目录                    | `moduleID`, `moduleName`, `libID` |
 
 **使用示例：**
+
 ```typescript
 // 获取产品 1 的文档空间树
-zentao_docs({ action: 'tree', spaceType: 'product', spaceID: 1 })
+zentao_docs({ action: "tree", spaceType: "product", spaceID: 1 });
 
 // 在文档库 1 下创建目录
-zentao_docs({ action: 'createModule', libID: 1, moduleName: '新目录', spaceID: 1 })
+zentao_docs({ action: "createModule", libID: 1, moduleName: "新目录", spaceID: 1 });
 
 // 在目录 111 下创建文档
-zentao_docs({ action: 'create', libID: 1, moduleID: 111, title: '新文档', content: '...' })
+zentao_docs({ action: "create", libID: 1, moduleID: 111, title: "新文档", content: "..." });
 ```
 
 ## 常见任务
 
 ### 添加新工具
 
-1. 在 `types.ts` 中定义相关类型
-2. 在 `zentao-client.ts` 中实现 API 方法
-3. 在 `index.ts` 中注册工具并实现 handler
+1. 在 `packages/zentao-mcp/src/types.ts` 中定义相关类型
+2. 在 `packages/zentao-mcp/src/zentao-clients/` 中实现 API 方法
+3. 在 `packages/zentao-mcp/src/index.ts` 中注册工具并实现 handler
 
 ### 调试 API
 
@@ -113,18 +119,18 @@ zentao_docs({ action: 'create', libID: 1, moduleID: 111, title: '新文档', con
 npx tsx test-doc-api.ts
 
 # 编译项目
-npm run build
+yarn build
 
 # 本地测试 MCP Server
-node dist/index.js
+node packages/zentao-mcp/dist/index.js
 ```
 
 ### 发布更新
 
 ```bash
 npm version patch  # 或 minor/major
-npm run build
-npm publish --access public
+yarn build
+cd packages/zentao-mcp && npm publish --access public
 ```
 
 ## 注意事项
@@ -142,15 +148,16 @@ steps: {
 【操作步骤】1. ... 2. ...
 【预期结果】...
 【实际结果】...
-【复现概率】...`
+【复现概率】...`;
 }
 ```
 
 ### SSL 证书
 
 自签名证书环境需要：
+
 ```typescript
-import https from 'https';
+import https from "https";
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 ```
 

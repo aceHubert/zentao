@@ -27,10 +27,7 @@ import type { IZentaoClient } from "./client.interface";
 
 type LegacyRequestType = "PATH_INFO" | "GET";
 type LegacyRequestParamPair = [string, unknown];
-type LegacyRequestParams =
-  | Array<LegacyRequestParamPair>
-  | string
-  | Record<string, unknown>;
+type LegacyRequestParams = Array<LegacyRequestParamPair> | string | Record<string, unknown>;
 type LegacyRequestData = Record<string, unknown> | URLSearchParams | string;
 
 interface LegacyApiResult {
@@ -48,10 +45,7 @@ interface LegacyRequestOptions {
   viewType?: string;
   responseType?: ResponseType;
   skipAutoLogin?: boolean;
-  resultConvertor?: (
-    remoteData: unknown,
-    result: LegacyApiResult,
-  ) => LegacyApiResult;
+  resultConvertor?: (remoteData: unknown, result: LegacyApiResult) => LegacyApiResult;
 }
 
 class LegacyServerConfig {
@@ -102,10 +96,7 @@ class LegacyServerConfig {
       return false;
     }
 
-    return (
-      Date.now() - this.tokenUpdatedAt >=
-      Math.max(this.expiredTime - 30, 0) * 1000
-    );
+    return Date.now() - this.tokenUpdatedAt >= Math.max(this.expiredTime - 30, 0) * 1000;
   }
 }
 
@@ -127,9 +118,7 @@ function formatZentaoUrl(url: string): string {
   return normalized;
 }
 
-function normalizeRequestParams(
-  params?: LegacyRequestParams,
-): LegacyRequestParamPair[] {
+function normalizeRequestParams(params?: LegacyRequestParams): LegacyRequestParamPair[] {
   if (!params) {
     return [];
   }
@@ -148,19 +137,13 @@ function normalizeRequestParams(
     .map((key) => [key, params[key]]);
 }
 
-function appendFormValue(
-  form: URLSearchParams,
-  key: string,
-  value: unknown,
-): void {
+function appendFormValue(form: URLSearchParams, key: string, value: unknown): void {
   if (value === undefined || value === null) {
     return;
   }
 
   if (Array.isArray(value)) {
-    value.forEach((item, index) =>
-      appendFormValue(form, `${key}[${index}]`, item),
-    );
+    value.forEach((item, index) => appendFormValue(form, `${key}[${index}]`, item));
     return;
   }
 
@@ -191,10 +174,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function pickRecord(
-  value: unknown,
-  ...keys: string[]
-): Record<string, unknown> | null {
+function pickRecord(value: unknown, ...keys: string[]): Record<string, unknown> | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -296,10 +276,7 @@ function pickCreatedId(value: unknown): number | null {
   return null;
 }
 
-function normalizeReloadResult(
-  remoteData: unknown,
-  result: LegacyApiResult,
-): LegacyApiResult {
+function normalizeReloadResult(remoteData: unknown, result: LegacyApiResult): LegacyApiResult {
   if (result.status === 1) {
     return result;
   }
@@ -403,17 +380,9 @@ export class ZentaoClientLegacy implements IZentaoClient {
     }
 
     if (this.serverConfig.requestType === "PATH_INFO") {
-      const parts = [
-        this.baseUrl,
-        moduleName,
-        this.serverConfig.requestFix,
-        methodName,
-      ];
+      const parts = [this.baseUrl, moduleName, this.serverConfig.requestFix, methodName];
       for (const [, value] of params ?? []) {
-        parts.push(
-          this.serverConfig.requestFix,
-          encodeURIComponent(String(value)),
-        );
+        parts.push(this.serverConfig.requestFix, encodeURIComponent(String(value)));
       }
       parts.push(`.${viewType}`);
       return parts.join("");
@@ -437,10 +406,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     methodName = "index",
     options: LegacyRequestOptions = {},
   ): Promise<LegacyApiResult> {
-    if (
-      !options.skipAutoLogin &&
-      `${moduleName}/${methodName}`.toLowerCase() !== "user/login"
-    ) {
+    if (!options.skipAutoLogin && `${moduleName}/${methodName}`.toLowerCase() !== "user/login") {
       await this.ensureLogin();
     } else if (!this.serverConfig) {
       await this.fetchConfig();
@@ -451,12 +417,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     }
 
     const params = normalizeRequestParams(options.params);
-    const url = this.createUrl(
-      moduleName,
-      methodName,
-      params,
-      options.viewType ?? "json",
-    );
+    const url = this.createUrl(moduleName, methodName, params, options.viewType ?? "json");
     const data = buildFormBody(options.data);
     try {
       const response = await this.http.request({
@@ -466,9 +427,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
         responseType: options.responseType,
         headers: {
           Cookie: this.serverConfig.tokenAuth,
-          ...(data
-            ? { "Content-Type": "application/x-www-form-urlencoded" }
-            : {}),
+          ...(data ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
           ...options.headers,
         },
       });
@@ -480,8 +439,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
         const parsedRemoteData = { ...remoteData };
         if (
           typeof parsedRemoteData.data === "string" &&
-          (parsedRemoteData.data.startsWith("{") ||
-            parsedRemoteData.data.startsWith("["))
+          (parsedRemoteData.data.startsWith("{") || parsedRemoteData.data.startsWith("["))
         ) {
           try {
             parsedRemoteData.data = JSON.parse(parsedRemoteData.data);
@@ -514,10 +472,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
         result = options.resultConvertor(remoteData, result);
       }
 
-      if (
-        `${moduleName}/${methodName}`.toLowerCase() === "user/login" &&
-        result.status === 1
-      ) {
+      if (`${moduleName}/${methodName}`.toLowerCase() === "user/login" && result.status === 1) {
         this.serverConfig.renewToken();
         this.loggedIn = true;
       }
@@ -533,11 +488,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     return pickCreatedId(result.result) ?? pickCreatedId(result.raw);
   }
 
-  async getBugs(
-    productID: number,
-    browseType = "unclosed",
-    limit = 100,
-  ): Promise<Bug[]> {
+  async getBugs(productID: number, browseType = "unclosed", limit = 100): Promise<Bug[]> {
     const result = await this.request("bug", "browse", {
       params: [
         ["productID", productID],
@@ -583,9 +534,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
         task: params.task ?? 0,
         story: params.story ?? 0,
         deadline: params.deadline,
-        openedBuild: params.openedBuild?.length
-          ? params.openedBuild
-          : ["trunk"],
+        openedBuild: params.openedBuild?.length ? params.openedBuild : ["trunk"],
         assignedTo: params.assignedTo,
         project: params.project ?? 0,
         severity: params.severity,
@@ -607,9 +556,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
       }
     }
 
-    throw new Error(
-      `创建 Legacy Bug 失败: ${String(result.msg ?? "未返回 Bug 数据")}`,
-    );
+    throw new Error(`创建 Legacy Bug 失败: ${String(result.msg ?? "未返回 Bug 数据")}`);
   }
 
   async resolveBug(params: ResolveBugParams): Promise<boolean> {
@@ -625,10 +572,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
       },
       resultConvertor: (remoteData, initialResult) => {
         const normalized = normalizeReloadResult(remoteData, initialResult);
-        if (
-          isRecord(normalized.result) &&
-          normalized.result.result === "fail"
-        ) {
+        if (isRecord(normalized.result) && normalized.result.result === "fail") {
           return {
             ...normalized,
             status: 0,
@@ -656,11 +600,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     return result.status === 1;
   }
 
-  async getStories(
-    productID: number,
-    browseType = "allstory",
-    limit = 100,
-  ): Promise<Story[]> {
+  async getStories(productID: number, browseType = "allstory", limit = 100): Promise<Story[]> {
     const result = await this.request("story", "browse", {
       params: [
         ["productID", productID],
@@ -723,9 +663,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
       }
     }
 
-    throw new Error(
-      `创建 Legacy 需求失败: ${String(result.msg ?? "未返回需求数据")}`,
-    );
+    throw new Error(`创建 Legacy 需求失败: ${String(result.msg ?? "未返回需求数据")}`);
   }
 
   async closeStory(params: CloseStoryParams): Promise<boolean> {
@@ -742,10 +680,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     return result.status === 1;
   }
 
-  async getTestCases(
-    productID: number,
-    limit = 100,
-  ): Promise<TestCaseListResponse> {
+  async getTestCases(productID: number, limit = 100): Promise<TestCaseListResponse> {
     const result = await this.request("testcase", "browse", {
       params: [
         ["productID", productID],
@@ -759,16 +694,11 @@ export class ZentaoClientLegacy implements IZentaoClient {
     });
 
     const container = pickRecord(result.result, "cases", "testcases");
-    const testcases = pickCollection<TestCase>(
-      result.result,
-      "cases",
-      "testcases",
-    );
+    const testcases = pickCollection<TestCase>(result.result, "cases", "testcases");
 
     return {
       page: pickNumber(container?.pageID ?? container?.page) ?? 1,
-      total:
-        pickNumber(container?.recTotal ?? container?.total) ?? testcases.length,
+      total: pickNumber(container?.recTotal ?? container?.total) ?? testcases.length,
       limit,
       testcases,
     };
@@ -825,9 +755,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
       }
     }
 
-    throw new Error(
-      `创建 Legacy 测试用例失败: ${String(result.msg ?? "未返回测试用例数据")}`,
-    );
+    throw new Error(`创建 Legacy 测试用例失败: ${String(result.msg ?? "未返回测试用例数据")}`);
   }
 
   async getProducts(limit = 100): Promise<Product[]> {
@@ -937,10 +865,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     return users.find((user) => user.account === this.config.account) ?? null;
   }
 
-  async getDocSpaceData(
-    type: "product" | "project",
-    spaceID: number,
-  ): Promise<DocSpaceData> {
+  async getDocSpaceData(type: "product" | "project", spaceID: number): Promise<DocSpaceData> {
     const result = await this.request("doc", "ajaxGetSpaceData", {
       params: [
         ["type", type],
@@ -1086,9 +1011,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     }
   }
 
-  async createDocModule(
-    params: CreateDocModuleParams,
-  ): Promise<{ id: number; name: string }> {
+  async createDocModule(params: CreateDocModuleParams): Promise<{ id: number; name: string }> {
     const form: Record<string, unknown> = {
       name: params.name,
       libID: params.libID,
@@ -1146,10 +1069,7 @@ export class ZentaoClientLegacy implements IZentaoClient {
     }
   }
 
-  async readFile(
-    fileID: number,
-    fileType: string,
-  ): Promise<ZentaoFileReadResult> {
+  async readFile(fileID: number, fileType: string): Promise<ZentaoFileReadResult> {
     const result = await this.request("file", "read", {
       params: [["fileID", fileID]],
       viewType: fileType,

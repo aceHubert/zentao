@@ -1,8 +1,5 @@
 import type { ZentaoConfig } from "../types";
-import {
-  type IZentaoClient,
-  type ZentaoClientVersion,
-} from "./client.interface";
+import { type IZentaoClient, type ZentaoClientVersion } from "./client.interface";
 import { ZentaoClientLegacy } from "./client-legacy";
 import { ZentaoClientV1 } from "./client-v1";
 import { ZentaoClientV2 } from "./client-v2";

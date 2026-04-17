@@ -1,4 +1,3 @@
-
 export interface ZentaoConfig {
   url: string;
   account: string;
@@ -6,7 +5,7 @@ export interface ZentaoConfig {
   rejectUnauthorized?: boolean;
 }
 
-export type BugStatus = 'active' | 'resolved' | 'closed';
+export type BugStatus = "active" | "resolved" | "closed";
 
 export type BugSeverity = 1 | 2 | 3 | 4;
 
@@ -35,7 +34,16 @@ export interface Bug {
   confirmed?: number;
 }
 
-export type BugType = 'codeerror' | 'config' | 'install' | 'security' | 'performance' | 'standard' | 'automation' | 'designdefect' | 'others';
+export type BugType =
+  | "codeerror"
+  | "config"
+  | "install"
+  | "security"
+  | "performance"
+  | "standard"
+  | "automation"
+  | "designdefect"
+  | "others";
 
 export interface CreateBugParams {
   product: number;
@@ -60,7 +68,14 @@ export interface CreateBugParams {
 
 export interface ResolveBugParams {
   id: number;
-  resolution: 'bydesign' | 'duplicate' | 'external' | 'fixed' | 'notrepro' | 'postponed' | 'willnotfix';
+  resolution:
+    | "bydesign"
+    | "duplicate"
+    | "external"
+    | "fixed"
+    | "notrepro"
+    | "postponed"
+    | "willnotfix";
   resolvedBuild?: string;
   comment?: string;
 }
@@ -76,7 +91,7 @@ export interface ActivateBugParams {
   comment?: string;
 }
 
-export type StoryStatus = 'draft' | 'active' | 'changed' | 'reviewing' | 'closed';
+export type StoryStatus = "draft" | "active" | "changed" | "reviewing" | "closed";
 
 export interface Story {
   id: number;
@@ -103,7 +118,14 @@ export interface Story {
   verify?: string;
 }
 
-export type StoryCategory = 'feature' | 'interface' | 'performance' | 'safe' | 'experience' | 'improve' | 'other';
+export type StoryCategory =
+  | "feature"
+  | "interface"
+  | "performance"
+  | "safe"
+  | "experience"
+  | "improve"
+  | "other";
 
 export interface CreateStoryParams {
   product: number;
@@ -123,7 +145,14 @@ export interface CreateStoryParams {
 
 export interface CloseStoryParams {
   id: number;
-  closedReason: 'done' | 'subdivided' | 'duplicate' | 'postponed' | 'willnotdo' | 'cancel' | 'bydesign';
+  closedReason:
+    | "done"
+    | "subdivided"
+    | "duplicate"
+    | "postponed"
+    | "willnotdo"
+    | "cancel"
+    | "bydesign";
   comment?: string;
 }
 
@@ -155,17 +184,24 @@ export interface ZentaoFileReadResult {
   fileID: number;
   fileType: string;
   mimeType: string;
-  encoding: 'base64';
+  encoding: "base64";
   data: string;
   size: number;
 }
 
+export type TestCaseType =
+  | "feature"
+  | "performance"
+  | "config"
+  | "install"
+  | "security"
+  | "interface"
+  | "unit"
+  | "other";
 
-export type TestCaseType = 'feature' | 'performance' | 'config' | 'install' | 'security' | 'interface' | 'unit' | 'other';
+export type TestCaseStage = "unittest" | "feature" | "intergrate" | "system" | "smoke" | "bvt";
 
-export type TestCaseStage = 'unittest' | 'feature' | 'intergrate' | 'system' | 'smoke' | 'bvt';
-
-export type TestCaseStatus = 'wait' | 'normal' | 'blocked' | 'investigate';
+export type TestCaseStatus = "wait" | "normal" | "blocked" | "investigate";
 
 export interface TestCaseStep {
   id?: number;
@@ -187,12 +223,14 @@ export interface TestCase {
   type: TestCaseType;
   stage?: TestCaseStage;
   status: TestCaseStatus;
-  openedBy: {
-    id: number;
-    account: string;
-    avatar: string;
-    realname: string;
-  } | string;
+  openedBy:
+    | {
+        id: number;
+        account: string;
+        avatar: string;
+        realname: string;
+      }
+    | string;
   openedDate: string;
   fromBug?: number;
   fromCaseID?: number;
@@ -224,7 +262,6 @@ export interface TestCaseListResponse {
   testcases: TestCase[];
 }
 
-
 export interface UpdateBugParams {
   id: number;
   title?: string;
@@ -242,7 +279,6 @@ export interface UpdateBugParams {
   deadline?: string;
   openedBuild?: string[];
 }
-
 
 export interface UpdateStoryParams {
   id: number;
@@ -262,10 +298,18 @@ export interface ChangeStoryParams {
   verify?: string;
 }
 
+export type TaskType =
+  | "design"
+  | "devel"
+  | "request"
+  | "test"
+  | "study"
+  | "discuss"
+  | "ui"
+  | "affair"
+  | "misc";
 
-export type TaskType = 'design' | 'devel' | 'request' | 'test' | 'study' | 'discuss' | 'ui' | 'affair' | 'misc';
-
-export type TaskStatus = 'wait' | 'doing' | 'done' | 'closed' | 'cancel';
+export type TaskStatus = "wait" | "doing" | "done" | "closed" | "cancel";
 
 export interface Task {
   id: number;
@@ -326,13 +370,12 @@ export interface UpdateTaskParams {
   desc?: string;
 }
 
-
 export interface User {
   id: number;
   account: string;
   realname?: string;
   avatar?: string;
-  gender?: 'm' | 'f';
+  gender?: "m" | "f";
   role?: string;
   dept?: number;
   email?: string;
@@ -353,7 +396,7 @@ export interface CreateUserParams {
   account: string;
   password: string;
   realname?: string;
-  gender?: 'm' | 'f';
+  gender?: "m" | "f";
   visions?: string[];
   role?: string;
   dept?: number;
@@ -372,7 +415,7 @@ export interface UpdateUserParams {
   role?: string;
   dept?: number;
   email?: string;
-  gender?: 'm' | 'f';
+  gender?: "m" | "f";
   mobile?: string;
   phone?: string;
   weixin?: string;
@@ -381,7 +424,6 @@ export interface UpdateUserParams {
   join?: string;
   password?: string;
 }
-
 
 export interface Program {
   id: number;
@@ -426,7 +468,6 @@ export interface UpdateProgramParams {
   whitelist?: string[];
 }
 
-
 export interface Plan {
   id: number;
   product: number;
@@ -460,7 +501,6 @@ export interface UpdatePlanParams {
   desc?: string;
 }
 
-
 export interface Release {
   id: number;
   project?: number;
@@ -476,7 +516,6 @@ export interface Release {
   buildName?: string;
   projectName?: string;
 }
-
 
 export interface Build {
   id: number;
@@ -517,7 +556,6 @@ export interface UpdateBuildParams {
   builder?: string;
   date?: string;
 }
-
 
 export interface Execution {
   id: number;
@@ -578,7 +616,6 @@ export interface UpdateExecutionParams {
   whitelist?: string[];
 }
 
-
 export interface CreateProductParams {
   name: string;
   code: string;
@@ -587,9 +624,9 @@ export interface CreateProductParams {
   PO?: string;
   QD?: string;
   RD?: string;
-  type?: 'normal' | 'branch' | 'platform';
+  type?: "normal" | "branch" | "platform";
   desc?: string;
-  acl?: 'open' | 'private';
+  acl?: "open" | "private";
   whitelist?: string[];
 }
 
@@ -599,13 +636,13 @@ export interface UpdateProductParams {
   code?: string;
   program?: number;
   line?: number;
-  type?: 'normal' | 'branch' | 'platform';
+  type?: "normal" | "branch" | "platform";
   status?: string;
   desc?: string;
   PO?: string;
   QD?: string;
   RD?: string;
-  acl?: 'open' | 'private';
+  acl?: "open" | "private";
   whitelist?: string[];
 }
 
@@ -615,7 +652,7 @@ export interface CreateProjectParams {
   begin: string;
   end: string;
   products: number[];
-  model?: 'scrum' | 'waterfall';
+  model?: "scrum" | "waterfall";
   parent?: number;
 }
 
@@ -634,8 +671,7 @@ export interface UpdateProjectParams {
   auth?: string;
 }
 
-
-export type DocType = 'text' | 'url' | 'word' | 'ppt' | 'excel';
+export type DocType = "text" | "url" | "word" | "ppt" | "excel";
 
 export interface Doc {
   id: number;
@@ -655,7 +691,7 @@ export interface Doc {
   views?: number;
 }
 
-export type DocLibType = 'product' | 'project' | 'execution' | 'custom' | 'api';
+export type DocLibType = "product" | "project" | "execution" | "custom" | "api";
 
 export interface DocLib {
   id: number;
@@ -683,7 +719,6 @@ export interface EditDocParams {
   content?: string;
   keywords?: string;
 }
-
 
 export interface DocModule {
   id: number;

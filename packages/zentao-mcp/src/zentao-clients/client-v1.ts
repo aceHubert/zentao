@@ -49,8 +49,6 @@ import {
   CreateProjectParams,
   UpdateProjectParams,
   Doc,
-  DocLib,
-  DocModule,
   DocSpaceData,
   CreateDocParams,
   EditDocParams,
@@ -81,9 +79,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     this.legacyClient = new ZentaoClientLegacy(config);
 
     // 规范化 URL
-    const baseURL = config.url.endsWith("/")
-      ? config.url.slice(0, -1)
-      : config.url;
+    const baseURL = config.url.endsWith("/") ? config.url.slice(0, -1) : config.url;
 
     // 创建 axios 实例配置
     const axiosConfig: Parameters<typeof axios.create>[0] = {
@@ -144,17 +140,14 @@ export class ZentaoClientV1 implements IZentaoClient {
         this.isLoggedIn = true;
       } else {
         // 老版本可能使用 session
-        this.http.defaults.headers.common["Cookie"] =
-          `zentaosid=${this.sessionID}`;
+        this.http.defaults.headers.common["Cookie"] = `zentaosid=${this.sessionID}`;
         this.isLoggedIn = true;
       }
 
       return true;
     } catch (error) {
       console.error("禅道登录失败:", error);
-      throw new Error(
-        `禅道登录失败: ${error instanceof Error ? error.message : "未知错误"}`,
-      );
+      throw new Error(`禅道登录失败: ${error instanceof Error ? error.message : "未知错误"}`);
     }
   }
 
@@ -176,11 +169,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param limit - 返回数量限制
    * @returns Bug 列表
    */
-  async getBugs(
-    productID: number,
-    browseType?: string,
-    limit?: number,
-  ): Promise<Bug[]> {
+  async getBugs(productID: number, browseType?: string, limit?: number): Promise<Bug[]> {
     await this.ensureLogin();
 
     const params = new URLSearchParams();
@@ -189,13 +178,8 @@ export class ZentaoClientV1 implements IZentaoClient {
 
     const queryString = params.toString();
     const url = `/api.php/v1/products/${productID}/bugs${queryString ? "?" + queryString : ""}`;
-    const response: AxiosResponse<ApiResponse<Bug[]>> =
-      await this.http.get(url);
-    return (
-      response.data.data ||
-      (response.data as unknown as { bugs: Bug[] }).bugs ||
-      []
-    );
+    const response: AxiosResponse<ApiResponse<Bug[]>> = await this.http.get(url);
+    return response.data.data || (response.data as unknown as { bugs: Bug[] }).bugs || [];
   }
 
   /**
@@ -210,11 +194,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<Bug[]>> = await this.http.get(
       `/api.php/v1/bugs?assignedTo=${account}&limit=${limit}`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { bugs: Bug[] }).bugs ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { bugs: Bug[] }).bugs || [];
   }
 
   /**
@@ -362,11 +342,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param limit - 返回数量限制
    * @returns 需求列表
    */
-  async getStories(
-    productID: number,
-    browseType?: string,
-    limit?: number,
-  ): Promise<Story[]> {
+  async getStories(productID: number, browseType?: string, limit?: number): Promise<Story[]> {
     await this.ensureLogin();
 
     const params = new URLSearchParams();
@@ -375,13 +351,8 @@ export class ZentaoClientV1 implements IZentaoClient {
 
     const queryString = params.toString();
     const url = `/api.php/v1/products/${productID}/stories${queryString ? "?" + queryString : ""}`;
-    const response: AxiosResponse<ApiResponse<Story[]>> =
-      await this.http.get(url);
-    return (
-      response.data.data ||
-      (response.data as unknown as { stories: Story[] }).stories ||
-      []
-    );
+    const response: AxiosResponse<ApiResponse<Story[]>> = await this.http.get(url);
+    return response.data.data || (response.data as unknown as { stories: Story[] }).stories || [];
   }
 
   /**
@@ -436,11 +407,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       if (response.data.data) {
         return response.data.data;
       }
-      if (
-        response.data &&
-        typeof response.data === "object" &&
-        "id" in response.data
-      ) {
+      if (response.data && typeof response.data === "object" && "id" in response.data) {
         return response.data as unknown as Story;
       }
       // 返回完整响应作为调试信息
@@ -450,10 +417,7 @@ export class ZentaoClientV1 implements IZentaoClient {
         response?: { data?: unknown };
         message?: string;
       };
-      console.error(
-        "创建需求失败:",
-        axiosError.response?.data || axiosError.message,
-      );
+      console.error("创建需求失败:", axiosError.response?.data || axiosError.message);
       throw new Error(
         `创建需求失败: ${JSON.stringify(axiosError.response?.data || axiosError.message)}`,
       );
@@ -487,11 +451,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param comment - 备注（可选）
    * @returns 操作结果
    */
-  async activateStory(
-    storyID: number,
-    assignedTo?: string,
-    comment?: string,
-  ): Promise<boolean> {
+  async activateStory(storyID: number, assignedTo?: string, comment?: string): Promise<boolean> {
     await this.ensureLogin();
 
     try {
@@ -520,9 +480,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       `/api.php/v1/products?limit=${limit}`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { products: Product[] }).products ||
-      []
+      response.data.data || (response.data as unknown as { products: Product[] }).products || []
     );
   }
 
@@ -538,9 +496,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       `/api.php/v1/projects?limit=${limit}`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { projects: Project[] }).projects ||
-      []
+      response.data.data || (response.data as unknown as { projects: Project[] }).projects || []
     );
   }
 
@@ -550,19 +506,14 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param limit - 返回数量限制
    * @returns 执行列表
    */
-  async getExecutions(
-    projectID: number,
-    limit: number = 100,
-  ): Promise<Project[]> {
+  async getExecutions(projectID: number, limit: number = 100): Promise<Project[]> {
     await this.ensureLogin();
 
     const response: AxiosResponse<ApiResponse<Project[]>> = await this.http.get(
       `/api.php/v1/projects/${projectID}/executions?limit=${limit}`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { executions: Project[] }).executions ||
-      []
+      response.data.data || (response.data as unknown as { executions: Project[] }).executions || []
     );
   }
 
@@ -574,10 +525,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param limit - 返回数量限制
    * @returns 测试用例列表响应
    */
-  async getTestCases(
-    productID: number,
-    limit: number = 100,
-  ): Promise<TestCaseListResponse> {
+  async getTestCases(productID: number, limit: number = 100): Promise<TestCaseListResponse> {
     await this.ensureLogin();
 
     const response: AxiosResponse<TestCaseListResponse> = await this.http.get(
@@ -655,8 +603,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     if (params.task !== undefined) updateData.task = params.task;
     if (params.story !== undefined) updateData.story = params.story;
     if (params.deadline !== undefined) updateData.deadline = params.deadline;
-    if (params.openedBuild !== undefined)
-      updateData.openedBuild = params.openedBuild;
+    if (params.openedBuild !== undefined) updateData.openedBuild = params.openedBuild;
 
     try {
       const response: AxiosResponse<ApiResponse<Bug>> = await this.http.put(
@@ -682,8 +629,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const updateData: Record<string, unknown> = {};
     if (params.module !== undefined) updateData.module = params.module;
     if (params.source !== undefined) updateData.source = params.source;
-    if (params.sourceNote !== undefined)
-      updateData.sourceNote = params.sourceNote;
+    if (params.sourceNote !== undefined) updateData.sourceNote = params.sourceNote;
     if (params.pri !== undefined) updateData.pri = params.pri;
     if (params.category !== undefined) updateData.category = params.category;
     if (params.estimate !== undefined) updateData.estimate = params.estimate;
@@ -863,8 +809,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     if (params.parent !== undefined) updateData.parent = params.parent;
     if (params.PM !== undefined) updateData.PM = params.PM;
     if (params.budget !== undefined) updateData.budget = params.budget;
-    if (params.budgetUnit !== undefined)
-      updateData.budgetUnit = params.budgetUnit;
+    if (params.budgetUnit !== undefined) updateData.budgetUnit = params.budgetUnit;
     if (params.days !== undefined) updateData.days = params.days;
     if (params.desc !== undefined) updateData.desc = params.desc;
     if (params.acl !== undefined) updateData.acl = params.acl;
@@ -896,11 +841,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<Task[]>> = await this.http.get(
       `/api.php/v1/executions/${executionID}/tasks?limit=${limit}`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { tasks: Task[] }).tasks ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { tasks: Task[] }).tasks || [];
   }
 
   /**
@@ -961,15 +902,13 @@ export class ZentaoClientV1 implements IZentaoClient {
     const updateData: Record<string, unknown> = {};
     if (params.name !== undefined) updateData.name = params.name;
     if (params.type !== undefined) updateData.type = params.type;
-    if (params.assignedTo !== undefined)
-      updateData.assignedTo = params.assignedTo;
+    if (params.assignedTo !== undefined) updateData.assignedTo = params.assignedTo;
     if (params.module !== undefined) updateData.module = params.module;
     if (params.story !== undefined) updateData.story = params.story;
     if (params.fromBug !== undefined) updateData.fromBug = params.fromBug;
     if (params.pri !== undefined) updateData.pri = params.pri;
     if (params.estimate !== undefined) updateData.estimate = params.estimate;
-    if (params.estStarted !== undefined)
-      updateData.estStarted = params.estStarted;
+    if (params.estStarted !== undefined) updateData.estStarted = params.estStarted;
     if (params.deadline !== undefined) updateData.deadline = params.deadline;
     if (params.desc !== undefined) updateData.desc = params.desc;
 
@@ -997,11 +936,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<User[]>> = await this.http.get(
       `/api.php/v1/users?limit=${limit}`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { users: User[] }).users ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { users: User[] }).users || [];
   }
 
   /**
@@ -1121,9 +1056,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       `/api.php/v1/programs?limit=${limit}`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { programs: Program[] }).programs ||
-      []
+      response.data.data || (response.data as unknown as { programs: Program[] }).programs || []
     );
   }
 
@@ -1186,8 +1119,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     if (params.parent !== undefined) updateData.parent = params.parent;
     if (params.PM !== undefined) updateData.PM = params.PM;
     if (params.budget !== undefined) updateData.budget = params.budget;
-    if (params.budgetUnit !== undefined)
-      updateData.budgetUnit = params.budgetUnit;
+    if (params.budgetUnit !== undefined) updateData.budgetUnit = params.budgetUnit;
     if (params.desc !== undefined) updateData.desc = params.desc;
     if (params.begin !== undefined) updateData.begin = params.begin;
     if (params.end !== undefined) updateData.end = params.end;
@@ -1219,11 +1151,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<Plan[]>> = await this.http.get(
       `/api.php/v1/products/${productID}/plans?limit=${limit}`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { plans: Plan[] }).plans ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { plans: Plan[] }).plans || [];
   }
 
   /**
@@ -1320,10 +1248,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param stories - 需求 ID 列表
    * @returns 是否成功
    */
-  async unlinkStoriesFromPlan(
-    planID: number,
-    stories: number[],
-  ): Promise<boolean> {
+  async unlinkStoriesFromPlan(planID: number, stories: number[]): Promise<boolean> {
     await this.ensureLogin();
 
     try {
@@ -1391,9 +1316,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       `/api.php/v1/projects/${projectID}/releases`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { releases: Release[] }).releases ||
-      []
+      response.data.data || (response.data as unknown as { releases: Release[] }).releases || []
     );
   }
 
@@ -1409,9 +1332,7 @@ export class ZentaoClientV1 implements IZentaoClient {
       `/api.php/v1/products/${productID}/releases`,
     );
     return (
-      response.data.data ||
-      (response.data as unknown as { releases: Release[] }).releases ||
-      []
+      response.data.data || (response.data as unknown as { releases: Release[] }).releases || []
     );
   }
 
@@ -1428,11 +1349,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<Build[]>> = await this.http.get(
       `/api.php/v1/projects/${projectID}/builds`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { builds: Build[] }).builds ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { builds: Build[] }).builds || [];
   }
 
   /**
@@ -1446,11 +1363,7 @@ export class ZentaoClientV1 implements IZentaoClient {
     const response: AxiosResponse<ApiResponse<Build[]>> = await this.http.get(
       `/api.php/v1/executions/${executionID}/builds`,
     );
-    return (
-      response.data.data ||
-      (response.data as unknown as { builds: Build[] }).builds ||
-      []
-    );
+    return response.data.data || (response.data as unknown as { builds: Build[] }).builds || [];
   }
 
   /**
@@ -1536,8 +1449,9 @@ export class ZentaoClientV1 implements IZentaoClient {
     await this.ensureLogin();
 
     try {
-      const response: AxiosResponse<ApiResponse<Execution>> =
-        await this.http.get(`/api.php/v1/executions/${executionID}`);
+      const response: AxiosResponse<ApiResponse<Execution>> = await this.http.get(
+        `/api.php/v1/executions/${executionID}`,
+      );
       return response.data.data || (response.data as unknown as Execution);
     } catch {
       return null;
@@ -1569,11 +1483,10 @@ export class ZentaoClientV1 implements IZentaoClient {
     if (params.acl !== undefined) data.acl = params.acl;
     if (params.whitelist !== undefined) data.whitelist = params.whitelist;
 
-    const response: AxiosResponse<ApiResponse<Execution>> =
-      await this.http.post(
-        `/api.php/v1/projects/${params.project}/executions`,
-        data,
-      );
+    const response: AxiosResponse<ApiResponse<Execution>> = await this.http.post(
+      `/api.php/v1/projects/${params.project}/executions`,
+      data,
+    );
     return response.data.data || (response.data as unknown as Execution);
   }
 
@@ -1582,9 +1495,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param params - 更新执行参数
    * @returns 更新后的执行
    */
-  async updateExecution(
-    params: UpdateExecutionParams,
-  ): Promise<Execution | null> {
+  async updateExecution(params: UpdateExecutionParams): Promise<Execution | null> {
     await this.ensureLogin();
 
     const updateData: Record<string, unknown> = {};
@@ -1598,15 +1509,16 @@ export class ZentaoClientV1 implements IZentaoClient {
     if (params.PM !== undefined) updateData.PM = params.PM;
     if (params.QD !== undefined) updateData.QD = params.QD;
     if (params.RD !== undefined) updateData.RD = params.RD;
-    if (params.teamMembers !== undefined)
-      updateData.teamMembers = params.teamMembers;
+    if (params.teamMembers !== undefined) updateData.teamMembers = params.teamMembers;
     if (params.desc !== undefined) updateData.desc = params.desc;
     if (params.acl !== undefined) updateData.acl = params.acl;
     if (params.whitelist !== undefined) updateData.whitelist = params.whitelist;
 
     try {
-      const response: AxiosResponse<ApiResponse<Execution>> =
-        await this.http.put(`/api.php/v1/executions/${params.id}`, updateData);
+      const response: AxiosResponse<ApiResponse<Execution>> = await this.http.put(
+        `/api.php/v1/executions/${params.id}`,
+        updateData,
+      );
       return response.data.data || (response.data as unknown as Execution);
     } catch {
       return null;
@@ -1621,10 +1533,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param spaceID - 空间 ID（产品或项目 ID）
    * @returns 文档空间数据
    */
-  async getDocSpaceData(
-    type: "product" | "project",
-    spaceID: number,
-  ): Promise<DocSpaceData> {
+  async getDocSpaceData(type: "product" | "project", spaceID: number): Promise<DocSpaceData> {
     return this.legacyClient.getDocSpaceData(type, spaceID);
   }
 
@@ -1661,9 +1570,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param params - 创建目录参数
    * @returns 创建结果
    */
-  async createDocModule(
-    params: CreateDocModuleParams,
-  ): Promise<{ id: number; name: string }> {
+  async createDocModule(params: CreateDocModuleParams): Promise<{ id: number; name: string }> {
     return this.legacyClient.createDocModule(params);
   }
 
@@ -1684,10 +1591,7 @@ export class ZentaoClientV1 implements IZentaoClient {
    * @param fileType - 文件类型
    * @returns 文件内容
    */
-  async readFile(
-    fileID: number,
-    fileType: string,
-  ): Promise<ZentaoFileReadResult> {
+  async readFile(fileID: number, fileType: string): Promise<ZentaoFileReadResult> {
     return this.legacyClient.readFile(fileID, fileType);
   }
 }

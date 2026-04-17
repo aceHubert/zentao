@@ -1,0 +1,29 @@
+{
+  "packages": ["packages/*"],
+  "npmClient": "yarn",
+  "version": "1.0.0",
+  "command": {
+    "publish": {
+      "conventionalCommits": true,
+      "gitTagVersion": true,
+      "ignoreChanges": [
+        "**/README.md",
+        "**/*.md",
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/coverage/**",
+        "**/test/**"
+      ],
+      "message": "chore(release): publish %s"
+    }
+  },
+  "changelog": {
+    "repo": "aceHubert/zentao",
+    "labels": {
+      "feat": ":rocket: New Feature",
+      "bug": ":bug: Bug Fix",
+      "breaking": ":boom: Breaking Change"
+    },
+    "cacheDir": ".changelog"
+  }
+}
