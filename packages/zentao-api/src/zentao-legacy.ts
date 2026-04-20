@@ -9,7 +9,7 @@ import {
   ZentaoFileReadResult,
 } from "./types";
 import { formatDate, md5 } from "./utils";
-import Zentao from "./zentao";
+import Zentao from "./helpers/zentao";
 
 /**
  * 禅道 API 请求类

@@ -1,4 +1,4 @@
-import { ZentaoRequestType } from "./types";
+import { ZentaoRequestType } from "../types";
 
 /**
  * 禅道配置存储对象

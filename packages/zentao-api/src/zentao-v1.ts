@@ -1,7 +1,12 @@
-import axios, { AxiosInstance } from "axios";
-import https from "https";
 import CryptoJS from "crypto-js";
-import { ZentaoApiResponse, QueryValue, RestEntity, ZentaoV1Options } from "./types";
+import {
+  ZentaoApiResponse,
+  ZentaoBugBrowseType,
+  ZentaoStoryBrowseType,
+  RestEntity,
+  ZentaoV1Options,
+} from "./types";
+import Zentao from "./helpers/zentao-restful";
 
 /**
  * 禅道 REST API v1 客户端。
@@ -10,36 +15,7 @@ import { ZentaoApiResponse, QueryValue, RestEntity, ZentaoV1Options } from "./ty
  * 参考文档：
  * https://www.zentao.net/book/api/1397.html
  */
-export default class ZentaoV1 {
-  private readonly options: ZentaoV1Options;
-  private readonly http: AxiosInstance;
-  private token = "";
-
-  constructor(options: ZentaoV1Options) {
-    this.options = options;
-
-    const baseURL = options.url.endsWith("/") ? options.url.slice(0, -1) : options.url;
-
-    this.http = axios.create({
-      baseURL,
-      timeout: options.timeout ?? 30000,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      httpsAgent:
-        options.rejectUnauthorized === false
-          ? new https.Agent({ rejectUnauthorized: false })
-          : undefined,
-    });
-  }
-
-  /**
-   * 当前已登录 token。
-   */
-  get authToken(): string {
-    return this.token;
-  }
-
+export default class ZentaoV1 extends Zentao<ZentaoV1Options> {
   /**
    * 登录并获取 Token。
    */
@@ -58,85 +34,20 @@ export default class ZentaoV1 {
       throw new Error("禅道 REST API v1 登录失败：未返回 Token");
     }
 
-    this.token = token;
-    this.http.defaults.headers.common.Token = token;
+    this.setAuthToken(token, "Token");
     return token;
   }
 
-  private async ensureLogin(): Promise<void> {
-    if (!this.token) {
-      await this.login();
-    }
-  }
-
-  private withQuery(path: string, query?: Record<string, QueryValue>): string {
-    if (!query) return path;
-    const search = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null || value === "") continue;
-      search.append(key, String(value));
-    }
-    const queryString = search.toString();
-    return queryString ? `${path}?${queryString}` : path;
-  }
-
-  private extractData<T = any>(payload: ZentaoApiResponse<T>, fallbackKey?: string): T {
-    if (payload.data !== undefined) return payload.data;
-    if (fallbackKey && payload[fallbackKey] !== undefined) return payload[fallbackKey] as T;
-    return payload as unknown as T;
-  }
-
-  private async get<T = any>(
-    path: string,
-    query?: Record<string, QueryValue>,
-    fallbackKey?: string,
-  ): Promise<T> {
-    await this.ensureLogin();
-    const response = await this.http.get<ZentaoApiResponse<T>>(this.withQuery(path, query));
-    return this.extractData(response.data, fallbackKey);
-  }
-
-  private async post<T = any>(
-    path: string,
-    data?: Record<string, any>,
-    fallbackKey?: string,
-  ): Promise<T> {
-    await this.ensureLogin();
-    const response = await this.http.post<ZentaoApiResponse<T>>(path, data);
-    return this.extractData(response.data, fallbackKey);
-  }
-
-  private async put<T = any>(
-    path: string,
-    data?: Record<string, any>,
-    fallbackKey?: string,
-  ): Promise<T> {
-    await this.ensureLogin();
-    const response = await this.http.put<ZentaoApiResponse<T>>(path, data);
-    return this.extractData(response.data, fallbackKey);
-  }
-
-  private async delete(path: string): Promise<boolean> {
-    await this.ensureLogin();
-    const response = await this.http.delete<ZentaoApiResponse>(path);
-    return this.isSuccess(response.data);
-  }
-
-  private async action(path: string, data?: Record<string, any>): Promise<boolean> {
-    await this.ensureLogin();
-    const response = await this.http.post<ZentaoApiResponse>(path, data);
-    return this.isSuccess(response.data);
-  }
-
-  private isSuccess(payload: ZentaoApiResponse): boolean {
-    if (payload.result === "success" || payload.status === "success") return true;
-    if (payload.data === true) return true;
-    if (typeof payload.data === "object" && payload.data?.result === "success") return true;
-    return false;
+  protected async putAction(path: string, data?: Record<string, any>): Promise<boolean> {
+    return this.postAction(path, data);
   }
 
   // Bug
-  async getBugs(productID: number, browseType?: string, limit?: number): Promise<RestEntity[]> {
+  async getBugs(
+    productID: number,
+    browseType?: ZentaoBugBrowseType,
+    limit?: number,
+  ): Promise<RestEntity[]> {
     return this.get(`/api.php/v1/products/${productID}/bugs`, { browseType, limit }, "bugs");
   }
 
@@ -172,11 +83,11 @@ export default class ZentaoV1 {
 
   async resolveBug(params: Record<string, any>): Promise<boolean> {
     const { id, ...data } = params;
-    return this.action(`/api.php/v1/bugs/${id}/resolve`, data);
+    return this.putAction(`/api.php/v1/bugs/${id}/resolve`, data);
   }
 
   async closeBug(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/bugs/${params.id}/close`, {
+    return this.putAction(`/api.php/v1/bugs/${params.id}/close`, {
       comment: params.comment,
     });
   }
@@ -186,24 +97,28 @@ export default class ZentaoV1 {
     assignedTo?: string;
     comment?: string;
   }): Promise<boolean> {
-    return this.action(`/api.php/v1/bugs/${params.id}/activate`, {
+    return this.putAction(`/api.php/v1/bugs/${params.id}/activate`, {
       assignedTo: params.assignedTo,
       comment: params.comment,
     });
   }
 
   async confirmBug(bugID: number, assignedTo?: string): Promise<boolean> {
-    return this.action(`/api.php/v1/bugs/${bugID}/confirm`, { assignedTo });
+    return this.putAction(`/api.php/v1/bugs/${bugID}/confirm`, { assignedTo });
   }
 
   // Story
-  async getStories(productID: number, browseType?: string, limit?: number): Promise<RestEntity[]> {
+  async getStories(
+    productID: number,
+    browseType?: ZentaoStoryBrowseType,
+    limit?: number,
+  ): Promise<RestEntity[]> {
     return this.get(`/api.php/v1/products/${productID}/stories`, { browseType, limit }, "stories");
   }
 
   async getProjectStories(
     projectID: number,
-    browseType?: string,
+    browseType?: ZentaoStoryBrowseType,
     limit?: number,
   ): Promise<RestEntity[]> {
     return this.get(`/api.php/v1/projects/${projectID}/stories`, { browseType, limit }, "stories");
@@ -211,7 +126,7 @@ export default class ZentaoV1 {
 
   async getExecutionStories(
     executionID: number,
-    browseType?: string,
+    browseType?: ZentaoStoryBrowseType,
     limit?: number,
   ): Promise<RestEntity[]> {
     return this.get(
@@ -252,12 +167,19 @@ export default class ZentaoV1 {
     }
   }
 
-  async closeStory(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/stories/${params.id}/close`, { comment: params.comment });
+  async closeStory(params: {
+    id: number;
+    closedReason?: string;
+    comment?: string;
+  }): Promise<boolean> {
+    return this.putAction(`/api.php/v1/stories/${params.id}/close`, {
+      closedReason: params.closedReason,
+      comment: params.comment,
+    });
   }
 
   async activateStory(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/stories/${params.id}/activate`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/stories/${params.id}/activate`, { comment: params.comment });
   }
 
   async deleteStory(storyID: number): Promise<boolean> {
@@ -386,26 +308,26 @@ export default class ZentaoV1 {
   }
 
   async startTask(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/tasks/${params.id}/start`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/tasks/${params.id}/start`, { comment: params.comment });
   }
 
   async pauseTask(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/tasks/${params.id}/pause`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/tasks/${params.id}/pause`, { comment: params.comment });
   }
 
   async resumeTask(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/tasks/${params.id}/continue`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/tasks/${params.id}/continue`, { comment: params.comment });
   }
 
   async finishTask(params: { id: number; consumed?: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/tasks/${params.id}/finish`, {
+    return this.putAction(`/api.php/v1/tasks/${params.id}/finish`, {
       consumed: params.consumed,
       comment: params.comment,
     });
   }
 
   async closeTask(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/tasks/${params.id}/close`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/tasks/${params.id}/close`, { comment: params.comment });
   }
 
   async getTaskLogs(taskID: number, limit: number = 100): Promise<RestEntity[]> {
@@ -451,7 +373,7 @@ export default class ZentaoV1 {
 
   async runTestCase(params: Record<string, any>): Promise<boolean> {
     const { id, ...data } = params;
-    return this.action(`/api.php/v1/testcases/${id}/run`, data);
+    return this.putAction(`/api.php/v1/testcases/${id}/run`, data);
   }
 
   // Testtask
@@ -567,19 +489,19 @@ export default class ZentaoV1 {
   }
 
   async linkStoriesToPlan(planID: number, stories: number[]): Promise<boolean> {
-    return this.action(`/api.php/v1/plans/${planID}/stories`, { stories });
+    return this.putAction(`/api.php/v1/plans/${planID}/stories`, { stories });
   }
 
   async unlinkStoriesFromPlan(planID: number, stories: number[]): Promise<boolean> {
-    return this.action(`/api.php/v1/plans/${planID}/unlinkStories`, { stories });
+    return this.putAction(`/api.php/v1/plans/${planID}/unlinkStories`, { stories });
   }
 
   async linkBugsToPlan(planID: number, bugs: number[]): Promise<boolean> {
-    return this.action(`/api.php/v1/plans/${planID}/bugs`, { bugs });
+    return this.putAction(`/api.php/v1/plans/${planID}/bugs`, { bugs });
   }
 
   async unlinkBugsFromPlan(planID: number, bugs: number[]): Promise<boolean> {
-    return this.action(`/api.php/v1/plans/${planID}/unlinkBugs`, { bugs });
+    return this.putAction(`/api.php/v1/plans/${planID}/unlinkBugs`, { bugs });
   }
 
   // Release & build
@@ -635,14 +557,14 @@ export default class ZentaoV1 {
     assignedTo: string;
     comment?: string;
   }): Promise<boolean> {
-    return this.action(`/api.php/v1/feedbacks/${params.id}/assign`, {
+    return this.putAction(`/api.php/v1/feedbacks/${params.id}/assign`, {
       assignedTo: params.assignedTo,
       comment: params.comment,
     });
   }
 
   async closeFeedback(params: { id: number; comment?: string }): Promise<boolean> {
-    return this.action(`/api.php/v1/feedbacks/${params.id}/close`, { comment: params.comment });
+    return this.putAction(`/api.php/v1/feedbacks/${params.id}/close`, { comment: params.comment });
   }
 
   async deleteFeedback(feedbackID: number): Promise<boolean> {

@@ -1,11 +1,10 @@
 import { Method } from "axios";
-import { ZentaoLegacyApiResponse, ZentaoRequestParams } from "./types";
-import { mergeRequestParams } from "./utils";
+import { ZentaoLegacyApiResponse, ZentaoRequestParams } from "../types";
+import { mergeRequestParams } from "../utils";
 import Zentao from "./zentao";
 
 /**
  * 禅道请求构建类
- * @internal
  */
 export default class ZentaoRequestBuilder {
   /**

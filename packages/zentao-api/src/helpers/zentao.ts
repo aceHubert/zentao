@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import Configstore from "configstore";
+import https from "https";
 import kleur from "kleur";
 import querystring from "querystring";
 import {
@@ -10,8 +11,8 @@ import {
   ZentaoRequestParams,
   ZentaoResponseType,
   ZentaoRequestType,
-} from "./types";
-import { formatZentaoUrl, normalizeRequestParams, slimmingObject } from "./utils";
+} from "../types";
+import { formatZentaoUrl, normalizeRequestParams, slimmingObject } from "../utils";
 import ZentaoConfig from "./zentao-config";
 import ZentaoRequestBuilder from "./zentao-request-builder";
 
@@ -57,6 +58,11 @@ export default class Zentao {
   private readonly _password: string;
 
   /**
+   * 是否校验 SSL 证书
+   */
+  private readonly _rejectUnauthorized?: boolean;
+
+  /**
    * 如果设置为 `true`，则会在控制台输出详细日志
    */
   private _debug: boolean;
@@ -97,6 +103,7 @@ export default class Zentao {
     this._url = formatZentaoUrl(options.url);
     this._account = options.account;
     this._password = options.password;
+    this._rejectUnauthorized = options.rejectUnauthorized;
 
     // 创建账号标识
     this._identifier = `${this.account}@${this._url}`;
@@ -230,7 +237,12 @@ export default class Zentao {
   async fetchConfig(): Promise<ZentaoConfig> {
     const url = `${this._url}/?mode=getconfig`;
     try {
-      const resp = await axios.get(url);
+      const resp =
+        this._rejectUnauthorized === false
+          ? await axios.get(url, {
+              httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+            })
+          : await axios.get(url);
 
       const config = new ZentaoConfig(resp.data);
       this._config = config;
@@ -336,13 +348,22 @@ export default class Zentao {
     }
 
     try {
-      const resp = await axios.request({
+      const requestConfig = {
         method,
         url,
         data,
         headers,
         responseType: options.responseType,
-      });
+      };
+
+      const resp = await axios.request(
+        this._rejectUnauthorized === false
+          ? {
+              ...requestConfig,
+              httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+            }
+          : requestConfig,
+      );
 
       let result: ZentaoLegacyApiResponse;
       const remoteData = resp.data;

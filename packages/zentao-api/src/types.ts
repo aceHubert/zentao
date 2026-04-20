@@ -90,6 +90,11 @@ export interface ZentaoLegacyOptions {
   readonly accessMode?: ZentaoRequestType;
 
   /**
+   * 是否校验 SSL 证书。自签名证书环境可设为 `false`
+   */
+  readonly rejectUnauthorized?: boolean;
+
+  /**
    * 是否将 token 存储到本地，如果设置为 `false`，则每次创建新的 `Zentao` 实例都会在首次调用 API 之前重新获取 Token
    */
   readonly preserveToken?: boolean;
@@ -120,6 +125,23 @@ export interface ZentaoV1Options {
  * 禅道 API v2 初始化选项
  */
 export interface ZentaoV2Options extends ZentaoV1Options {}
+
+/**
+ * REST API v1 / v2 的列表 browseType。
+ *
+ * 默认值为 `unclosed`，不支持 `active`。
+ */
+export type ZentaoBrowseType = "all" | "unclosed" | "assignedtome" | "openedbyme" | "assignedbyme";
+
+/**
+ * REST API v1 / v2 的 Bug 列表 browseType。
+ */
+export type ZentaoBugBrowseType = ZentaoBrowseType;
+
+/**
+ * REST API v1 / v2 的需求列表 browseType。
+ */
+export type ZentaoStoryBrowseType = ZentaoBrowseType;
 
 export type DocType = "text" | "url" | "word" | "ppt" | "excel";
 

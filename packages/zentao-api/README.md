@@ -1,8 +1,7 @@
 # 禅道 API 调用模块
 
-`@ace-zentao/api` 提供了 4 套客户端：
+`@ace-zentao/api` 提供了 3 套客户端：
 
-- `Zentao`：通用底层请求封装，适合直接按模块/方法调用。
 - `zentao-legacy`：基于旧版内置接口 `/index.php?m=xxx&f=xxx` 的高层封装。
 - `zentao-v1`：对应导出类 `ZentaoV1`，基于 REST API v1 的业务封装。
 - `zentao-v2`：对应导出类 `ZentaoV2`，基于 REST API v2 的业务封装。
@@ -16,28 +15,12 @@ npm install --save @ace-zentao/api
 ## 导入示例
 
 ```ts
-import { Zentao, ZentaoLegacy, ZentaoV1, ZentaoV2 } from "@ace-zentao/api";
+import { ZentaoLegacy, ZentaoV1, ZentaoV2 } from "@ace-zentao/api";
 ```
 
 ## 快速开始
 
-### 1. 使用通用客户端
-
-```ts
-import { Zentao } from "@ace-zentao/api";
-
-const client = new Zentao({
-  url: "https://zentao.example.com/",
-  account: "demo",
-  password: "123456",
-});
-
-const result = await client.request("bug", "browse", {
-  params: [["productID", 1]],
-});
-```
-
-### 2. 使用 REST API v1 客户端
+### 1. 使用 REST API v1 客户端
 
 ```ts
 import { ZentaoV1 } from "@ace-zentao/api";
@@ -51,7 +34,7 @@ const client = new ZentaoV1({
 const bugs = await client.getBugs(1, "unclosed", 20);
 ```
 
-### 3. 使用 REST API v2 客户端
+### 2. 使用 REST API v2 客户端
 
 ```ts
 import { ZentaoV2 } from "@ace-zentao/api";
@@ -69,12 +52,6 @@ const products = await client.getProducts(20);
 
 以下方法清单按当前 `packages/zentao-api/src` 源码整理。
 
-### Zentao
-
-通用底层能力，适合需要自由拼装模块名、方法名和参数时使用。
-
-- 通用：`login`、`fetchConfig`、`module`、`m`、`request`
-
 ### ZentaoLegacy
 
 适合旧版内置接口和文档相关能力。
@@ -86,7 +63,6 @@ const products = await client.getProducts(20);
 - 任务：`getTaskList`、`getTask`、`getTaskCreateParams`、`addTask`、`getTaskFinishParams`、`finishTask`
 - Bug：`getBugList`、`getBug`、`getBugCreateParams`、`addBug`、`getBugResolveParams`、`resolveBug`
 - 文档与文件：`getDocSpaceData`、`getDoc`、`createDoc`、`editDoc`、`createDocModule`、`editDocModule`、`readFile`
-- 动态调用：`call`
 
 ### ZentaoV1
 
@@ -129,19 +105,3 @@ const products = await client.getProducts(20);
 - 应用：`createSystem`、`updateSystem`、`getProductSystems`
 - 反馈：`getFeedbacks`、`getFeedback`、`createFeedback`、`updateFeedback`、`assignFeedback`、`closeFeedback`、`deleteFeedback`
 - 工单：`getTickets`、`getTicket`、`createTicket`、`updateTicket`、`closeTicket`、`activateTicket`、`deleteTicket`
-
-## 选择建议
-
-- 需要底层自由拼装：优先用 `Zentao`
-- 需要旧版内置接口、文档空间、附件读取：优先用 `ZentaoLegacy`
-- 对接稳定的 REST v1：优先用 `zentao-v1`，对应导出类 `ZentaoV1`
-- 明确使用官方 REST v2：优先用 `zentao-v2`，对应导出类 `ZentaoV2`
-
-## 说明
-
-- 方法清单以当前源码为准，后续新增能力时请同步更新本 README。
-- 各方法的参数结构可以直接查看对应源码文件：
-  - `src/zentao.ts`
-  - `src/zentao-legacy.ts`
-  - `src/zentao-v1.ts`
-  - `src/zentao-v2.ts`
