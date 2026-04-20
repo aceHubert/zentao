@@ -92,13 +92,18 @@
 npm install -g @ace-zentao/mcp
 ```
 
+全局安装后会提供两个命令：
+
+- `zentao-mcp`：启动 MCP Server，用于接入 MCP 客户端。
+- `zentao`：命令行工具，用于在终端直接操作禅道。
+
 然后在 MCP 配置中使用：
 
 ```json
 {
   "mcpServers": {
     "zentao": {
-      "command": "@ace-zentao/mcp",
+      "command": "zentao-mcp",
       "env": {
         "ZENTAO_URL": "https://your-zentao-server.com",
         "ZENTAO_ACCOUNT": "your_username",
@@ -144,13 +149,209 @@ yarn build
 
 ## ⚙️ 环境变量说明
 
-| 变量名            | 必填 | 说明                                                                                             |
-| ----------------- | ---- | ------------------------------------------------------------------------------------------------ |
-| `ZENTAO_URL`      | ✅   | 禅道服务器地址（包含协议，如 `https://zentao.example.com`）                                      |
-| `ZENTAO_ACCOUNT`  | ✅   | 禅道登录账号                                                                                     |
-| `ZENTAO_PASSWORD` | ✅   | 禅道登录密码                                                                                     |
-| `ZENTAO_VERSION`  | ❌   | 客户端版本，支持 `legncy`（旧 API 实现） `v1` (REST API V1 版本) 和 `v2`(REST API V1 版本，默认) |
-| `ZENTAO_SKIP_SSL` | ❌   | 是否跳过 SSL 证书验证（自签名证书时设为 `true`）                                                 |
+| 变量名            | 必填 | 说明                                                                                      |
+| ----------------- | ---- | ----------------------------------------------------------------------------------------- |
+| `ZENTAO_URL`      | ✅   | 禅道服务器地址（包含协议，如 `https://zentao.example.com`）                               |
+| `ZENTAO_ACCOUNT`  | ✅   | 禅道登录账号                                                                              |
+| `ZENTAO_PASSWORD` | ✅   | 禅道登录密码                                                                              |
+| `ZENTAO_VERSION`  | ❌   | 客户端版本，支持 `legacy`（旧 API 实现）、`v1`（REST API V1）和 `v2`（REST API V2，默认） |
+| `ZENTAO_SKIP_SSL` | ❌   | 是否跳过 SSL 证书验证（自签名证书时设为 `true`）                                          |
+
+## 💻 CLI 使用说明
+
+`zentao` CLI 适合在终端中做一次性查询、脚本化检查和小批量维护。
+
+安装：
+
+```bash
+npm install -g @ace-zentao/mcp
+zentao --version
+```
+
+推荐使用环境变量配置连接信息，避免密码进入 shell 历史：
+
+```bash
+export ZENTAO_URL="https://your-zentao-server.com"
+export ZENTAO_ACCOUNT="your_username"
+export ZENTAO_PASSWORD="your_password"
+export ZENTAO_VERSION="v2"
+export ZENTAO_SKIP_SSL="false"
+```
+
+也可以在命令行中临时传入连接参数：
+
+```bash
+zentao users me \
+  --url "https://your-zentao-server.com" \
+  --account "your_username" \
+  --password "your_password" \
+  --zentaoVersion "v2" \
+  --skipSSL
+```
+
+基本格式：
+
+```bash
+zentao <resource> <action> [arguments] [flags]
+```
+
+查看帮助：
+
+```bash
+zentao --help
+zentao bugs --help
+zentao docs --help
+```
+
+CLI 输出为格式化 JSON，方便结合 `jq` 或脚本继续处理。
+
+### Bug
+
+查询：
+
+```bash
+zentao bugs list --productID 1 --browseType unclosed --limit 20
+zentao bugs view --bugID 123
+```
+
+创建：
+
+```bash
+zentao bugs create \
+  --productID 1 \
+  --title "登录按钮点击后无响应" \
+  --severity 2 \
+  --pri 2 \
+  --type codeerror \
+  --steps "【前置条件】进入登录页\n【操作步骤】点击登录按钮\n【预期结果】正常提交\n【实际结果】无响应"
+```
+
+解决和关闭：
+
+```bash
+zentao bugs resolve --bugID 123 --resolution fixed --comment "已修复，待验证"
+zentao bugs close --bugID 123 --comment "验证通过"
+```
+
+### 需求
+
+查询：
+
+```bash
+zentao stories list --productID 1 --browseType unclosed --limit 20
+zentao stories view --storyID 456
+```
+
+需求列表的 `browseType` 默认 `unclosed`。v1/v2 可用值：`all` 全部、`unclosed` 未关闭、`assignedtome` 指派给我、`openedbyme` 我创建、`assignedbyme` 由我指派。
+
+创建：
+
+```bash
+zentao stories create \
+  --productID 1 \
+  --title "优化登录流程" \
+  --category feature \
+  --pri 2 \
+  --spec "用户可以通过手机号和验证码登录" \
+  --reviewer "zhangsan" \
+  --verify "输入正确验证码后登录成功"
+```
+
+关闭：
+
+```bash
+zentao stories close --storyID 456 --closedReason done --comment "需求已完成"
+```
+
+### 测试用例
+
+`steps` 参数需要传入 JSON 数组字符串。
+
+```bash
+zentao testcases list --productID 1 --limit 20
+zentao testcases view --caseID 789
+
+zentao testcases create \
+  --productID 1 \
+  --title "手机号验证码登录成功" \
+  --type feature \
+  --pri 2 \
+  --precondition "测试账号已存在" \
+  --steps '[{"desc":"输入手机号","expect":"手机号格式正确"},{"desc":"输入验证码并提交","expect":"登录成功"}]'
+```
+
+### 产品、项目、用户
+
+```bash
+zentao products list --limit 20
+zentao products view --productID 1
+
+zentao projects list --limit 20
+zentao projects view --projectID 1
+
+zentao users me
+zentao users list --limit 20
+zentao users view --userID 1
+```
+
+### 文档
+
+文档写入依赖文档库 ID 和目录 ID。创建或编辑前，先查询空间树确认目标位置。
+
+```bash
+zentao docs tree --spaceType product --spaceID 1
+zentao docs view --docID 1001
+```
+
+创建目录和文档：
+
+```bash
+zentao docs createModule \
+  --libID 1 \
+  --spaceID 1 \
+  --moduleName "接口文档"
+
+zentao docs create \
+  --libID 1 \
+  --moduleID 111 \
+  --title "登录接口文档" \
+  --content "接口地址、请求参数、响应格式..."
+```
+
+编辑文档和目录：
+
+```bash
+zentao docs edit \
+  --docID 1001 \
+  --title "登录接口文档" \
+  --content "更新后的文档内容"
+
+zentao docs editModule \
+  --moduleID 111 \
+  --libID 1 \
+  --moduleName "登录接口"
+```
+
+### 附件和图片
+
+读取附件或图片内容：
+
+```bash
+zentao file read --fileID 100 --fileType png
+```
+
+### 脚本化示例
+
+```bash
+zentao bugs list --productID 1 --browseType unclosed --limit 50 \
+  | jq '.[] | {id, title, severity, pri, assignedTo}'
+```
+
+写操作建议遵循以下流程：
+
+1. 使用 `list` 或 `view` 确认目标 ID。
+2. 执行 `create`、`resolve`、`close` 或 `edit`。
+3. 再次使用 `view` 验证结果。
 
 ## 💬 使用示例
 
@@ -260,17 +461,3 @@ yarn build
 1. **权限**：确保配置的账号有足够的权限进行相应操作
 2. **SSL 证书**：如果禅道使用自签名证书，需要设置 `ZENTAO_SKIP_SSL=true`
 3. **密码安全**：不要将配置文件提交到公开的版本控制系统
-
-## 🔧 发布到 npm（维护者）
-
-```bash
-# 登录 npm
-npm login
-
-# 发布
-npm publish --access public
-```
-
-## 📄 License
-
-MIT

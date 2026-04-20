@@ -46,60 +46,108 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import dotenv from "dotenv";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import { createZentaoClient } from "./zentao-clients";
 import {
+  verifyZentaoClientOptions,
+  addZentaoConnectionOptions,
+  getBoolean,
+  getString,
+  ZentaoCommandArgs,
   normalizeZentaoVersion,
-  createZentaoClient,
-  type ZentaoClientVersion,
-} from "./zentao-clients";
-import { BugType, BugSeverity, TestCaseType, TestCaseStep, StoryCategory } from "./types";
+} from "./utils";
+import type {
+  ZentaoMcpOptions,
+  BugType,
+  BugSeverity,
+  TestCaseType,
+  TestCaseStep,
+  StoryCategory,
+  IZentaoClient,
+  ZentaoClientVersion,
+} from "./types";
 
 // 加载环境变量
-dotenv.config();
+dotenv.config({ quiet: true });
 
-// 验证必需的环境变量
-const ZENTAO_URL = process.env.ZENTAO_URL;
-const ZENTAO_ACCOUNT = process.env.ZENTAO_ACCOUNT;
-const ZENTAO_PASSWORD = process.env.ZENTAO_PASSWORD;
-const ZENTAO_VERSION = process.env.ZENTAO_VERSION;
-/** 是否跳过SSL证书验证（自签名证书时设为 'true'） */
-const ZENTAO_SKIP_SSL = process.env.ZENTAO_SKIP_SSL === "true";
-
-if (!ZENTAO_URL || !ZENTAO_ACCOUNT || !ZENTAO_PASSWORD) {
-  console.error("错误: 请设置以下环境变量:");
-  console.error("  ZENTAO_URL - 禅道服务器地址");
-  console.error("  ZENTAO_ACCOUNT - 禅道用户名");
-  console.error("  ZENTAO_PASSWORD - 禅道密码");
-  console.error("  ZENTAO_VERSION - 客户端版本（可选，支持 legacy / v1 / v2）");
-  console.error("  ZENTAO_SKIP_SSL - 是否跳过SSL验证（可选，自签名证书时设为 true）");
-  process.exit(1);
+export function getZentaoMcpOptions(args: ZentaoCommandArgs): ZentaoMcpOptions {
+  return {
+    url: getString(args, "url"),
+    account: getString(args, "account"),
+    password: getString(args, "password"),
+    zentaoVersion: getString(args, "zentaoVersion"),
+    skipSSL: getBoolean(args, "skipSSL"),
+  };
 }
 
-let zentaoVersion: ZentaoClientVersion;
+/** 命令参数优先，未传入时回退到环境变量。 */
+function resolveZentaoMcpOptions(options: ZentaoMcpOptions): ZentaoMcpOptions {
+  return {
+    url: options.url ?? process.env.ZENTAO_URL,
+    account: options.account ?? process.env.ZENTAO_ACCOUNT,
+    password: options.password ?? process.env.ZENTAO_PASSWORD,
+    zentaoVersion: options.zentaoVersion ?? process.env.ZENTAO_VERSION,
+    skipSSL: options.skipSSL ?? process.env.ZENTAO_SKIP_SSL === "true",
+  };
+}
+
+/** 解析 MCP Server 启动参数。 */
+function parseMcpOptions(): ZentaoMcpOptions {
+  const args = addZentaoConnectionOptions(
+    yargs(hideBin(process.argv)).scriptName("npx @ace-zentao/mcp@latest"),
+  )
+    .help(false)
+    .version(false)
+    .exitProcess(false)
+    .showHelpOnFail(false)
+    .fail((message, error) => {
+      throw error ?? new Error(message);
+    })
+    .parseSync();
+
+  return getZentaoMcpOptions(args);
+}
+
+let zentaoClient: IZentaoClient;
 
 try {
-  zentaoVersion = normalizeZentaoVersion(ZENTAO_VERSION);
+  const options = verifyZentaoClientOptions(resolveZentaoMcpOptions(parseMcpOptions()), "启动参数");
+  zentaoClient = createZentaoClient(
+    {
+      url: options.url,
+      account: options.account,
+      password: options.password,
+      rejectUnauthorized: options.skipSSL ? false : undefined,
+    },
+    normalizeZentaoVersion(options.zentaoVersion),
+  );
 } catch (error) {
-  console.error(error instanceof Error ? error.message : "ZENTAO_VERSION 配置错误");
+  console.error(error instanceof Error ? error.message : "MCP Server 配置错误");
   process.exit(1);
 }
-
-// 创建禅道客户端
-const zentaoClient = createZentaoClient(
-  {
-    url: ZENTAO_URL,
-    account: ZENTAO_ACCOUNT,
-    password: ZENTAO_PASSWORD,
-    rejectUnauthorized: ZENTAO_SKIP_SSL ? false : undefined,
-  },
-  zentaoVersion,
-);
 
 // ==================== 工具定义 ====================
 
-const tools: Tool[] = [
+type ZentaoTool = Tool & {
+  /** 支持的禅道客户端版本。为空或未配置时表示全版本支持。 */
+  supportVersions?: ZentaoClientVersion[];
+};
+
+function isToolSupported(tool: ZentaoTool, version: ZentaoClientVersion): boolean {
+  return !tool.supportVersions?.length || tool.supportVersions.includes(version);
+}
+
+function toMcpTool(tool: ZentaoTool): Tool {
+  const { supportVersions: _supportVersions, ...mcpTool } = tool;
+  return mcpTool;
+}
+
+const tools: ZentaoTool[] = [
   // Bug 工具
   {
     name: "zentao_bugs",
+    supportVersions: [],
     description: "Bug 操作。支持：查询列表、查询详情、创建、解决、关闭",
     inputSchema: {
       type: "object",
@@ -123,15 +171,21 @@ const tools: Tool[] = [
           enum: [
             "all",
             "unclosed",
-            "unresolved",
-            "toclosed",
+            "assignedtome",
             "openedbyme",
+            "assignedbyme",
             "assigntome",
             "resolvedbyme",
-            "assigntonull",
+            "toclosed",
+            "unresolved",
+            "unconfirmed",
+            "longlifebugs",
+            "postponedbugs",
+            "overduebugs",
+            "needconfirm",
           ],
           description:
-            "浏览类型(list): all-全部, unclosed-未关闭(默认), unresolved-未解决, toclosed-待关闭, openedbyme-我创建, assigntome-指派给我, resolvedbyme-我解决, assigntonull-未指派",
+            "Bug 状态(list)，默认 unclosed。v1/v2: all-全部, unclosed-未关闭, assignedtome-指派给我, openedbyme-我创建, assignedbyme-由我指派。legacy: all-所有, unclosed-未关闭, openedbyme-由我创建, assigntome-指派给我, resolvedbyme-由我解决, toclosed-待关闭, unresolved-未解决, unconfirmed-未确认, longlifebugs-久未处理, postponedbugs-被延期, overduebugs-过期BUG, needconfirm-需求变动",
         },
         limit: { type: "number", description: "返回数量限制，默认 20" },
         // 创建参数
@@ -199,6 +253,7 @@ const tools: Tool[] = [
   // 需求工具
   {
     name: "zentao_stories",
+    supportVersions: ["v1", "v2"],
     description: "需求操作。支持：查询列表、查询详情、创建、关闭",
     inputSchema: {
       type: "object",
@@ -219,20 +274,9 @@ const tools: Tool[] = [
         },
         browseType: {
           type: "string",
-          enum: [
-            "allstory",
-            "unclosed",
-            "draftstory",
-            "activestory",
-            "reviewingstory",
-            "changingstory",
-            "closedstory",
-            "openedbyme",
-            "assignedtome",
-            "reviewbyme",
-          ],
+          enum: ["all", "unclosed", "assignedtome", "openedbyme", "assignedbyme"],
           description:
-            "浏览类型(list): allstory-全部, unclosed-未关闭(默认), draftstory-草稿, activestory-激活, reviewingstory-评审中, changingstory-变更中, closedstory-已关闭, openedbyme-我创建, assignedtome-指派给我, reviewbyme-我评审",
+            "需求状态(list)，默认 unclosed。v1/v2: all-全部, unclosed-未关闭, assignedtome-指派给我, openedbyme-我创建, assignedbyme-由我指派",
         },
         limit: { type: "number", description: "返回数量限制，默认 20" },
         // 创建参数
@@ -288,6 +332,7 @@ const tools: Tool[] = [
   // 测试用例工具
   {
     name: "zentao_testcases",
+    supportVersions: ["v1", "v2"],
     description: "测试用例操作。支持：查询列表、查询详情、创建",
     inputSchema: {
       type: "object",
@@ -348,6 +393,7 @@ const tools: Tool[] = [
   // 产品工具
   {
     name: "zentao_products",
+    supportVersions: [],
     description: "产品操作。支持：查询列表、查询详情",
     inputSchema: {
       type: "object",
@@ -367,6 +413,7 @@ const tools: Tool[] = [
   // 项目工具
   {
     name: "zentao_projects",
+    supportVersions: [],
     description: "项目操作。支持：查询列表、查询详情",
     inputSchema: {
       type: "object",
@@ -386,6 +433,7 @@ const tools: Tool[] = [
   // 用户工具
   {
     name: "zentao_users",
+    supportVersions: [],
     description: "用户操作。支持：查询列表、查询详情、查询当前用户",
     inputSchema: {
       type: "object",
@@ -405,6 +453,7 @@ const tools: Tool[] = [
   // 文档工具
   {
     name: "zentao_docs",
+    supportVersions: [],
     description:
       "文档操作。支持：获取文档空间树、获取文档详情、创建/编辑文档、创建/编辑目录、读取附件/图片",
     inputSchema: {
@@ -471,6 +520,7 @@ const tools: Tool[] = [
   // 文件工具
   {
     name: "zentao_file",
+    supportVersions: [],
     description: "文件读取。支持：读取附件/图片内容，返回 base64 编码结果",
     inputSchema: {
       type: "object",
@@ -510,7 +560,9 @@ const server = new Server(
 
 // 列出所有可用工具
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return { tools };
+  return {
+    tools: tools.filter((tool) => isToolSupported(tool, zentaoClient.version)).map(toMcpTool),
+  };
 });
 
 // 处理工具调用
@@ -518,6 +570,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
+    const requestedTool = tools.find((tool) => tool.name === name);
+    if (requestedTool && !isToolSupported(requestedTool, zentaoClient.version)) {
+      return {
+        content: [
+          { type: "text", text: `当前禅道版本 ${zentaoClient.version} 不支持工具: ${name}` },
+        ],
+        isError: true,
+      };
+    }
+
     let result: unknown;
 
     switch (name) {
