@@ -1,4 +1,4 @@
-import { utils } from "../src";
+import * as utils from "../src/utils";
 
 describe("utils.createDate", () => {
   it("date from string", () => {
