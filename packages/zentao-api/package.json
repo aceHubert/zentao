@@ -1,6 +1,6 @@
 {
   "name": "@ace-zentao/api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "aceHubert",
   "license": "MIT",
   "description": "禅道 API 调用模块",
