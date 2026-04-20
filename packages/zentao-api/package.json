@@ -39,9 +39,6 @@
     "@types/crypto-js": "^4.2.2",
     "typedoc": "^0.20.30"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -49,5 +46,8 @@
       "require": "./dist/index.cjs"
     }
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }

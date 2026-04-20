@@ -45,9 +45,6 @@
   "devDependencies": {
     "@types/yargs": "^17.0.35"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -55,5 +52,8 @@
       "require": "./dist/index.cjs"
     }
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }
