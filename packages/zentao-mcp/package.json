@@ -9,8 +9,8 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "zentao": "dist/cli.cjs",
-    "zentao-mcp": "dist/index.cjs"
+    "zentao-mcp": "dist/index.cjs",
+    "zentao": "dist/cli.cjs"
   },
   "files": [
     "dist",
