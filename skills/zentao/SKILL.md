@@ -1,11 +1,11 @@
 ---
 name: zentao
-description: Uses Zentao via MCP for efficient product, project, bug, story, test case, document, user, and file operations through the configured @ace-zentao/mcp server tools.
+description: Uses Zentao via MCP for efficient product, project, bug, story, test case, document, user, and file operations through the configured @acehubert/zentao-mcp server tools.
 ---
 
 ## Core Concepts
 
-**Server configuration**: The MCP server is provided by `@ace-zentao/mcp` and
+**Server configuration**: The MCP server is provided by `@acehubert/zentao-mcp` and
 requires Zentao connection settings such as `ZENTAO_URL`, `ZENTAO_ACCOUNT`,
 `ZENTAO_PASSWORD`, `ZENTAO_VERSION`, and optionally `ZENTAO_SKIP_SSL`.
 Start it from an MCP client with `npx`:
@@ -15,7 +15,7 @@ Start it from an MCP client with `npx`:
   "mcpServers": {
     "zentao": {
       "command": "npx",
-      "args": ["-y", "@ace-zentao/mcp@latest"],
+      "args": ["-y", "@acehubert/zentao-mcp@latest"],
       "env": {
         "ZENTAO_URL": "https://zentao.example.com",
         "ZENTAO_ACCOUNT": "your_account",

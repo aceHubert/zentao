@@ -32,7 +32,7 @@
 推荐在 MCP 客户端中使用 `npx`，无需全局安装：
 
 ```bash
-npx -y @ace-zentao/mcp@latest
+npx -y @acehubert/zentao-mcp@latest
 ```
 
 ### 全局安装 CLI
@@ -40,7 +40,7 @@ npx -y @ace-zentao/mcp@latest
 如果需要在终端中直接使用 `zentao` 命令：
 
 ```bash
-npm i -g @ace-zentao/mcp@latest
+npm i -g @acehubert/zentao-mcp@latest
 zentao --version
 ```
 
@@ -94,7 +94,7 @@ export ZENTAO_SKIP_SSL="false"
   "mcpServers": {
     "zentao": {
       "command": "npx",
-      "args": ["-y", "@ace-zentao/mcp@latest"],
+      "args": ["-y", "@acehubert/zentao-mcp@latest"],
       "env": {
         "ZENTAO_URL": "https://zentao.example.com",
         "ZENTAO_ACCOUNT": "your_account",
@@ -320,7 +320,7 @@ export ZENTAO_VERSION="legacy"
 请确认已经全局安装：
 
 ```bash
-npm i -g @ace-zentao/mcp@latest
+npm i -g @acehubert/zentao-mcp@latest
 ```
 
 如果仍然找不到命令，请检查 npm 全局 `bin` 目录是否在 `PATH` 中。

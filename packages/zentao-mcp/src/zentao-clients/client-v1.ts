@@ -1,4 +1,4 @@
-import { ZentaoV1 } from "@ace-zentao/api";
+import { ZentaoV1 } from "@acehubert/zentao-api";
 import type {
   Bug,
   CloseBugParams,
@@ -28,7 +28,7 @@ import { ZentaoClientLegacy } from "./client-legacy";
 
 /**
  * MCP v1 客户端适配器。
- * 实际接口调用统一委托给 @ace-zentao/api，当前类只负责保持 MCP 层返回结构兼容。
+ * 实际接口调用统一委托给 @acehubert/zentao-api，当前类只负责保持 MCP 层返回结构兼容。
  */
 export class ZentaoClientV1 implements IZentaoClient {
   private readonly api: ZentaoV1;

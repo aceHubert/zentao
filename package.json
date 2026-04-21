@@ -2,9 +2,9 @@
   "name": "zentao",
   "private": true,
   "scripts": {
-    "typecheck": "lerna run typecheck --stream --scope '@ace-zentao/*'",
-    "build": "lerna run build --stream --scope '@ace-zentao/*'",
-    "test": "lerna run test --stream --scope '@ace-zentao/*'",
+    "typecheck": "lerna run typecheck --stream --scope '@acehubert/*'",
+    "build": "lerna run build --stream --scope '@acehubert/*'",
+    "test": "lerna run test --stream --scope '@acehubert/*'",
     "release": "lerna publish",
     "release:git": "lerna publish from-git",
     "release:package": "lerna publish from-package",
@@ -13,8 +13,8 @@
     "release:graduate": "lerna publish --conventional-commits --conventional-graduate",
     "changelog": "node ./scripts/genChangelog.js",
     "prepublishOnly": "yarn install --mode=skip-build && yarn changelog && yarn build && yarn test",
-    "lint": "lerna run lint --stream --scope '@ace-zentao/*'",
-    "lint:fix": "lerna run lint:fix --stream --scope '@ace-zentao/*'",
+    "lint": "lerna run lint --stream --scope '@acehubert/*'",
+    "lint:fix": "lerna run lint:fix --stream --scope '@acehubert/*'",
     "commit": "git-cz"
   },
   "devDependencies": {

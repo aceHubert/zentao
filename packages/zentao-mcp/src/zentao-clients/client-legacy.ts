@@ -1,4 +1,4 @@
-import { ZentaoLegacy } from "@ace-zentao/api";
+import { ZentaoLegacy } from "@acehubert/zentao-api";
 import type {
   Bug,
   CloseBugParams,
@@ -135,12 +135,12 @@ function pickCreatedId(value: unknown): number | null {
 }
 
 function unsupportedLegacyApi(methodName: string): never {
-  throw new Error(`Legacy API 暂不支持 ${methodName}: @ace-zentao/api 未封装该方法`);
+  throw new Error(`Legacy API 暂不支持 ${methodName}: @acehubert/zentao-api 未封装该方法`);
 }
 
 /**
  * MCP legacy 客户端适配器。
- * 实际接口调用统一委托给 @ace-zentao/api，当前类只负责参数和返回结构适配。
+ * 实际接口调用统一委托给 @acehubert/zentao-api，当前类只负责参数和返回结构适配。
  */
 export class ZentaoClientLegacy implements IZentaoClient {
   private readonly config: ZentaoClientConfig;

@@ -1,5 +1,5 @@
 {
-  "name": "@ace-zentao/mcp",
+  "name": "@acehubert/zentao-mcp",
   "version": "0.2.1",
   "author": "aceHubert",
   "license": "MIT",
@@ -37,7 +37,7 @@
     "lint:fix": "run -T eslint src --ext .ts --fix"
   },
   "dependencies": {
-    "@ace-zentao/api": "workspace:*",
+    "@acehubert/zentao-api": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "dotenv": "^17.2.3",
     "yargs": "^17.7.2"

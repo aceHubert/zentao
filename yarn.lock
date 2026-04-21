@@ -5,9 +5,9 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@ace-zentao/api@workspace:*, @ace-zentao/api@workspace:packages/zentao-api":
+"@acehubert/zentao-api@workspace:*, @acehubert/zentao-api@workspace:packages/zentao-api":
   version: 0.0.0-use.local
-  resolution: "@ace-zentao/api@workspace:packages/zentao-api"
+  resolution: "@acehubert/zentao-api@workspace:packages/zentao-api"
   dependencies:
     "@types/configstore": ^4.0.0
     "@types/crypto-js": ^4.2.2
@@ -20,11 +20,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ace-zentao/mcp@workspace:packages/zentao-mcp":
+"@acehubert/zentao-mcp@workspace:packages/zentao-mcp":
   version: 0.0.0-use.local
-  resolution: "@ace-zentao/mcp@workspace:packages/zentao-mcp"
+  resolution: "@acehubert/zentao-mcp@workspace:packages/zentao-mcp"
   dependencies:
-    "@ace-zentao/api": "workspace:*"
+    "@acehubert/zentao-api": "workspace:*"
     "@modelcontextprotocol/sdk": ^1.25.2
     "@types/yargs": ^17.0.35
     dotenv: ^17.2.3

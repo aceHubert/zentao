@@ -51,7 +51,7 @@
   "mcpServers": {
     "zentao": {
       "command": "npx",
-      "args": ["-y", "@ace-zentao/mcp"],
+      "args": ["-y", "@acehubert/zentao-mcp"],
       "env": {
         "ZENTAO_URL": "https://your-zentao-server.com",
         "ZENTAO_ACCOUNT": "your_username",
@@ -73,7 +73,7 @@
   "mcpServers": {
     "zentao": {
       "command": "npx",
-      "args": ["-y", "@ace-zentao/mcp"],
+      "args": ["-y", "@acehubert/zentao-mcp"],
       "env": {
         "ZENTAO_URL": "https://your-zentao-server.com",
         "ZENTAO_ACCOUNT": "your_username",
@@ -89,7 +89,7 @@
 ### 方式二：全局安装
 
 ```bash
-npm install -g @ace-zentao/mcp
+npm install -g @acehubert/zentao-mcp
 ```
 
 全局安装后会提供两个命令：
@@ -164,7 +164,7 @@ yarn build
 安装：
 
 ```bash
-npm install -g @ace-zentao/mcp
+npm install -g @acehubert/zentao-mcp
 zentao --version
 ```
 

@@ -95,7 +95,7 @@ function resolveZentaoMcpOptions(options: ZentaoMcpOptions): ZentaoMcpOptions {
 /** 解析 MCP Server 启动参数。 */
 function parseMcpOptions(): ZentaoMcpOptions {
   const args = addZentaoConnectionOptions(
-    yargs(hideBin(process.argv)).scriptName("npx @ace-zentao/mcp@latest"),
+    yargs(hideBin(process.argv)).scriptName("npx @acehubert/zentao-mcp@latest"),
   )
     .help(false)
     .version(false)
@@ -548,7 +548,7 @@ const tools: ZentaoTool[] = [
 
 const server = new Server(
   {
-    name: "@ace-zentao/mcp",
+    name: "@acehubert/zentao-mcp",
     version: "1.0.0",
   },
   {

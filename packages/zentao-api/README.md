@@ -1,6 +1,6 @@
 # 禅道 API 调用模块
 
-`@ace-zentao/api` 提供了 3 套客户端：
+`@acehubert/zentao-api` 提供了 3 套客户端：
 
 - `zentao-legacy`：基于旧版内置接口 `/index.php?m=xxx&f=xxx` 的高层封装。
 - `zentao-v1`：对应导出类 `ZentaoV1`，基于 REST API v1 的业务封装。
@@ -9,13 +9,13 @@
 ## 安装
 
 ```bash
-npm install --save @ace-zentao/api
+npm install --save @acehubert/zentao-api
 ```
 
 ## 导入示例
 
 ```ts
-import { ZentaoLegacy, ZentaoV1, ZentaoV2 } from "@ace-zentao/api";
+import { ZentaoLegacy, ZentaoV1, ZentaoV2 } from "@acehubert/zentao-api";
 ```
 
 ## 快速开始
@@ -23,7 +23,7 @@ import { ZentaoLegacy, ZentaoV1, ZentaoV2 } from "@ace-zentao/api";
 ### 1. 使用 REST API v1 客户端
 
 ```ts
-import { ZentaoV1 } from "@ace-zentao/api";
+import { ZentaoV1 } from "@acehubert/zentao-api";
 
 const client = new ZentaoV1({
   url: "https://zentao.example.com/",
@@ -37,7 +37,7 @@ const bugs = await client.getBugs(1, "unclosed", 20);
 ### 2. 使用 REST API v2 客户端
 
 ```ts
-import { ZentaoV2 } from "@ace-zentao/api";
+import { ZentaoV2 } from "@acehubert/zentao-api";
 
 const client = new ZentaoV2({
   url: "https://zentao.example.com/",
