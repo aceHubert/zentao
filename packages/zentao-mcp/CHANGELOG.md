@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/aceHubert/zentao/compare/v0.2.2...v0.3.0) (2026-04-21)
+
+### Features
+
+- **zentao:** 新增客户端版本查询工具 ([f3f3c56](https://github.com/aceHubert/zentao/commit/f3f3c5627f5465f904ebe47aa824e9817e63c2b2))
+
 ## [0.2.2](https://github.com/aceHubert/zentao/compare/v0.2.1...v0.2.2) (2026-04-21)
 
 **Note:** Version bump only for package @acehubert/zentao-mcp
