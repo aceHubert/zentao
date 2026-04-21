@@ -53,10 +53,6 @@
     "commit-msg": "commitlint -e -V",
     "pre-commit": "lint-staged"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/aceHubert/zentao.git"
-  },
   "ts-node": {
     "esm": true,
     "experimentalResolver": true,
