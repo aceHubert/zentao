@@ -19,12 +19,16 @@ not part of the regular AI workflow._
 1. **Confirm configuration**: Prefer environment variables
    `ZENTAO_URL`, `ZENTAO_ACCOUNT`, `ZENTAO_PASSWORD`, `ZENTAO_VERSION`, and
    `ZENTAO_SKIP_SSL` so passwords are not written into shell history.
-2. **Inspect before writing**: Before create, resolve, close, or edit actions,
+2. **Confirm client version**: Before using version-sensitive commands or
+   arguments, run `zentao client getVersion`. Use the returned `clientVersion`
+   value (`legacy`, `v1`, or `v2`) to choose supported argument values, such as
+   `browseType`.
+3. **Inspect before writing**: Before create, resolve, close, or edit actions,
    use `view` or `list` to confirm the target object exists and is in the
    expected state.
-3. **Execute**: Run `zentao <resource> <action>` directly. Output defaults to
+4. **Execute**: Run `zentao <resource> <action>` directly. Output defaults to
    formatted JSON and can be piped into `jq`, scripts, or later analysis.
-4. **Verify**: After a write action, run `view` again to confirm the state,
+5. **Verify**: After a write action, run `view` again to confirm the state,
    title, content, or comment changed as expected.
 
 ## Command Usage
@@ -58,9 +62,27 @@ Use `--help` on any command:
 
 ```bash
 zentao --help
+zentao client --help
 zentao bugs --help
 zentao docs --help
 ```
+
+## Client Version
+
+Before choosing version-sensitive arguments, use the client command to confirm
+the effective Zentao client version:
+
+```bash
+zentao client getVersion
+```
+
+The JSON result includes `clientVersion`. Use that value to choose arguments:
+
+- `v1` / `v2`: Bug `browseType` supports `all`, `unclosed`,
+  `assignedtome`, `openedbyme`, and `assignedbyme`.
+- `legacy`: Bug `browseType` supports `all`, `unclosed`, `openedbyme`,
+  `assigntome`, `resolvedbyme`, `toclosed`, `unresolved`, `unconfirmed`,
+  `longlifebugs`, `postponedbugs`, `overduebugs`, and `needconfirm`.
 
 ## Bugs
 

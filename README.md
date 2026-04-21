@@ -109,6 +109,7 @@ export ZENTAO_SKIP_SSL="false"
 
 配置完成后，AI 客户端会获得以下 MCP 工具：
 
+- `zentao_client`：客户端信息查询、当前客户端版本获取。
 - `zentao_bugs`：Bug 列表、详情、创建、解决、关闭。
 - `zentao_stories`：需求列表、详情、创建、关闭。
 - `zentao_testcases`：测试用例列表、详情、创建。
@@ -149,8 +150,15 @@ zentao <resource> <action> [arguments] [flags]
 
 ```bash
 zentao --help
+zentao client --help
 zentao bugs --help
 zentao docs --help
+```
+
+### 客户端
+
+```bash
+zentao client getVersion
 ```
 
 ### Bug

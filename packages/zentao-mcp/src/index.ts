@@ -50,12 +50,13 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { createZentaoClient } from "./zentao-clients";
 import {
-  verifyZentaoClientOptions,
+  normalizeZentaoVersion,
   addZentaoConnectionOptions,
+  verifyZentaoClientOptions,
+  getZentaoClientVersionDescription,
   getBoolean,
   getString,
-  ZentaoCommandArgs,
-  normalizeZentaoVersion,
+  type ZentaoCommandArgs,
 } from "./utils";
 import type {
   ZentaoMcpOptions,
@@ -144,6 +145,24 @@ function toMcpTool(tool: ZentaoTool): Tool {
 }
 
 const tools: ZentaoTool[] = [
+  // 客户端工具
+  {
+    name: "zentao_client",
+    supportVersions: [],
+    description: "客户端信息查询。支持：获取当前禅道客户端版本",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["getVersion"],
+          description: "操作类型: getVersion-获取当前禅道客户端版本",
+        },
+      },
+      required: ["action"],
+    },
+  },
+
   // Bug 工具
   {
     name: "zentao_bugs",
@@ -583,6 +602,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     let result: unknown;
 
     switch (name) {
+      // 客户端操作
+      case "zentao_client": {
+        const { action } = args as {
+          action: string;
+        };
+
+        switch (action) {
+          case "getVersion":
+            result = {
+              clientVersion: zentaoClient.version,
+              description: getZentaoClientVersionDescription(zentaoClient.version),
+            };
+            break;
+
+          default:
+            return {
+              content: [{ type: "text", text: `未知操作类型: ${action}` }],
+              isError: true,
+            };
+        }
+        break;
+      }
+
       // Bug 操作
       case "zentao_bugs": {
         const {

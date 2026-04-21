@@ -11,6 +11,8 @@ import { createZentaoClient } from "./zentao-clients";
 import {
   normalizeZentaoVersion,
   addZentaoConnectionOptions,
+  verifyZentaoClientOptions,
+  getZentaoClientVersionDescription,
   getBoolean,
   getJsonArray,
   getNumber,
@@ -18,7 +20,6 @@ import {
   getStringArray,
   printJsonResult,
   type ZentaoCommandArgs,
-  verifyZentaoClientOptions,
 } from "./utils";
 import type {
   ZentaoCliOptions,
@@ -60,6 +61,33 @@ const commonListOptions = (parser: Argv): Argv =>
     type: "number",
     describe: "返回数量限制",
   });
+
+function registerClientCommands(parser: Argv, getClient: ClientFactory): Argv {
+  return parser.command(
+    "client <action>",
+    "客户端信息查询：getVersion",
+    (command) =>
+      command.positional("action", {
+        choices: ["getVersion"] as const,
+        describe: "操作类型",
+      }),
+    async (args: ZentaoCommandArgs) => {
+      const client = getClient(args);
+      const action = getString(args, "action");
+
+      switch (action) {
+        case "getVersion":
+          printJsonResult({
+            clientVersion: client.version,
+            description: getZentaoClientVersionDescription(client.version),
+          });
+          return;
+        default:
+          throw new Error(`未知操作类型: ${String(action)}`);
+      }
+    },
+  );
+}
 
 function registerBugCommands(parser: Argv, getClient: ClientFactory): Argv {
   return parser.command(
@@ -580,6 +608,7 @@ async function main(): Promise<void> {
     .alias("v", "version")
     .wrap(Math.min(100, yargs().terminalWidth()));
 
+  registerClientCommands(parser, getClient);
   registerBugCommands(parser, getClient);
   registerStoryCommands(parser, getClient);
   registerTestCaseCommands(parser, getClient);

@@ -32,6 +32,12 @@ Start it from an MCP client with `npx`:
 `action` argument. Choose the resource tool first, then choose the action, such
 as `list`, `view`, `create`, `resolve`, `close`, `tree`, or `edit`.
 
+**Client version confirmation**: Before using version-sensitive tools or
+arguments, call `zentao_client` with `action: "getVersion"`. Use the returned
+`clientVersion` value (`legacy`, `v1`, or `v2`) to choose the correct argument
+values. For example, Bug `browseType` values differ between `legacy` and
+`v1`/`v2`.
+
 **ID-driven operations**: Most write actions require stable Zentao IDs. Use
 `list`, `view`, or `tree` first to identify the exact `productID`, `projectID`,
 `bugID`, `storyID`, `caseID`, `docID`, `libID`, `moduleID`, or `fileID`.
@@ -48,12 +54,14 @@ small when possible.
 
 ### Before writing Zentao data
 
-1. Identify the target scope with `zentao_products`, `zentao_projects`, or
+1. When arguments depend on the API version, confirm the effective client
+   version with `zentao_client` and `action: "getVersion"`.
+2. Identify the target scope with `zentao_products`, `zentao_projects`, or
    `zentao_docs` tree queries.
-2. Inspect the target record with `view` or a filtered `list`.
-3. Confirm the ID, current state, and requested change.
-4. Call the write action.
-5. Verify the result with another `view`.
+3. Inspect the target record with `view` or a filtered `list`.
+4. Confirm the ID, current state, and requested change.
+5. Call the write action.
+6. Verify the result with another `view`.
 
 ### Bugs
 
@@ -88,6 +96,7 @@ small when possible.
 
 ## Tool Selection
 
+- **Client version and metadata**: `zentao_client`
 - **Bugs**: `zentao_bugs`
 - **Stories**: `zentao_stories`
 - **Test cases**: `zentao_testcases`
@@ -99,8 +108,15 @@ small when possible.
 
 ## Efficient Data Retrieval
 
+- Call `zentao_client` with `action: "getVersion"` before choosing
+  version-sensitive argument values.
 - Use `limit` on list tools to keep responses focused.
 - Use filtered browse types when available instead of fetching broad lists.
+- For Bug `browseType`, use `all`, `unclosed`, `assignedtome`, `openedbyme`,
+  or `assignedbyme` on `v1` / `v2`; use `all`, `unclosed`, `openedbyme`,
+  `assigntome`, `resolvedbyme`, `toclosed`, `unresolved`, `unconfirmed`,
+  `longlifebugs`, `postponedbugs`, `overduebugs`, or `needconfirm` on
+  `legacy`.
 - Use `view` after finding a candidate ID to avoid acting on incomplete list
   data.
 - Avoid reading large file attachments unless the user specifically needs the

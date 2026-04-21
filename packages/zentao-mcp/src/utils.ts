@@ -51,6 +51,17 @@ export function normalizeZentaoVersion(version?: string): ZentaoClientVersion {
   throw new Error(`不支持的 ZENTAO_VERSION: ${version}`);
 }
 
+/** 获取禅道客户端版本说明。 */
+export function getZentaoClientVersionDescription(version: ZentaoClientVersion): string {
+  const descriptions: Record<ZentaoClientVersion, string> = {
+    legacy: "内置 API 客户端，使用 /index.php?m=xxx&f=xxx 形式的传统接口",
+    v1: "REST API v1 客户端，使用 /api.php/v1/... 接口",
+    v2: "REST API v2 客户端，使用 /api.php/v2/... 接口",
+  };
+
+  return descriptions[version];
+}
+
 /** 注册 CLI 和 MCP Server 共用的禅道连接参数。 */
 export function addZentaoConnectionOptions(parser: Argv): Argv {
   return parser
