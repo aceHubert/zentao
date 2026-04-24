@@ -6,14 +6,7 @@
     "publish": {
       "conventionalCommits": true,
       "gitTagVersion": true,
-      "ignoreChanges": [
-        "**/README.md",
-        "**/*.md",
-        "**/node_modules/**",
-        "**/dist/**",
-        "**/coverage/**",
-        "**/test/**"
-      ],
+      "ignoreChanges": ["**/node_modules/**", "**/dist/**", "**/coverage/**", "**/test/**"],
       "message": "chore(release): publish %s"
     }
   },
