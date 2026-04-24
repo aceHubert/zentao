@@ -1,0 +1,66 @@
+name: Deploy
+
+on:
+  # release:
+  #   types: [published]
+  push: # push 到主分支自动 发布
+    branches: ["master"]
+    paths-ignore: # 忽略一些不必要的文件
+      - ".gitignore"
+      - ".mcp.json"
+      - "README.md"
+      - ".vscode/**"
+      - ".cursor/**"
+      - ".claude/**"
+      - ".codex/**"
+      - ".agents/**"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: "production"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "16.14"
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn config && yarn install --mode=skip-build
+      - name: Configure Git User
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{github.actor}}"
+          git config --list
+      - name: Authenticate with Registry
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+          npm whoami
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish
+        run: |
+          npx lerna publish --yes --no-granular-pathspec
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+          # https://github.com/renovatebot/renovate/discussions/9481?sort=old#discussioncomment-660412
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
