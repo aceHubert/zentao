@@ -1,3 +1,5 @@
+import type { ZentaoFileReadResult } from "@acehubert/zentao-api";
+
 export interface ZentaoClientBaseOptions {
   url?: string;
   account?: string;
@@ -194,15 +196,6 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   message?: string;
-}
-
-export interface ZentaoFileReadResult {
-  fileID: number;
-  fileType: string;
-  mimeType: string;
-  encoding: "base64";
-  data: string;
-  size: number;
 }
 
 export type TestCaseType =

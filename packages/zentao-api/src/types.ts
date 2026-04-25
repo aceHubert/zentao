@@ -227,7 +227,6 @@ export interface ZentaoFileReadResult {
   fileID: number;
   fileType: string;
   mimeType: string;
-  encoding: "base64";
-  data: string;
+  data: Buffer;
   size: number;
 }

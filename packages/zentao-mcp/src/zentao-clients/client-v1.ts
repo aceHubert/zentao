@@ -1,4 +1,7 @@
 import { ZentaoV1 } from "@acehubert/zentao-api";
+import { ZentaoClientLegacy } from "./client-legacy";
+
+import type { ZentaoFileReadResult } from "@acehubert/zentao-api";
 import type {
   Bug,
   CloseBugParams,
@@ -20,11 +23,9 @@ import type {
   TestCaseListResponse,
   User,
   ZentaoClientConfig,
-  ZentaoFileReadResult,
   ZentaoClientVersion,
   IZentaoClient,
 } from "../types";
-import { ZentaoClientLegacy } from "./client-legacy";
 
 /**
  * MCP v1 客户端适配器。

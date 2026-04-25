@@ -677,7 +677,7 @@ describe("ZentaoLegacy", () => {
     expectNthRequest(3, "?m=doc&f=ajaxGetDoc&docID=101&version=0&t=json");
   });
 
-  it("readFile 应返回 base64 编码文件内容及 MIME 类型", async () => {
+  it("readFile 应返回 Buffer 文件内容及 MIME 类型", async () => {
     mockLoginSuccessOnce();
     const raw = Uint8Array.from([72, 101, 108, 108, 111]).buffer;
     mockedAxios.request.mockResolvedValueOnce({
@@ -694,8 +694,7 @@ describe("ZentaoLegacy", () => {
       fileID: 9,
       fileType: "txt",
       mimeType: "text/plain",
-      encoding: "base64",
-      data: Buffer.from("Hello").toString("base64"),
+      data: Buffer.from("Hello"),
       size: 5,
     } satisfies ZentaoFileReadResult);
     expect(mockedAxios.request).toHaveBeenNthCalledWith(
