@@ -1455,7 +1455,7 @@ export default class ZentaoLegacy extends Zentao {
   }
 
   /**
-   * 读取附件或图片文件，并返回 base64 编码内容。
+   * 读取附件或图片文件，并返回原始二进制内容。
    *
    * @param params 读取参数，其中 `params.fileID` 为文件 ID，`params.fileType` 为文件扩展名
    * @returns 文件读取结果
@@ -1474,8 +1474,7 @@ export default class ZentaoLegacy extends Zentao {
             fileID: params.fileID,
             fileType: params.fileType,
             mimeType: this.resolveFileMimeType(params.fileType),
-            encoding: "base64",
-            data: buffer.toString("base64"),
+            data: buffer,
             size: buffer.byteLength,
           } satisfies ZentaoFileReadResult,
         };

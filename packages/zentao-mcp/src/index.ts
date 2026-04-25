@@ -45,6 +45,10 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from "node:crypto";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import dotenv from "dotenv";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -58,6 +62,8 @@ import {
   getString,
   type ZentaoCommandArgs,
 } from "./utils";
+
+import type { ZentaoFileReadResult } from "@acehubert/zentao-api";
 import type {
   ZentaoMcpOptions,
   BugType,
@@ -79,6 +85,33 @@ export function getZentaoMcpOptions(args: ZentaoCommandArgs): ZentaoMcpOptions {
     password: getString(args, "password"),
     zentaoVersion: getString(args, "zentaoVersion"),
     skipSSL: getBoolean(args, "skipSSL"),
+  };
+}
+
+function normalizeFileExtension(fileType: string): string {
+  const normalized = fileType.trim().toLowerCase().replace(/^\.+/, "");
+  return normalized || "bin";
+}
+
+async function saveFileToTempDirectory(file: ZentaoFileReadResult): Promise<{
+  fileID: number;
+  fileType: string;
+  mimeType: string;
+  size: number;
+  filePath: string;
+}> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "zentao-mcp-"));
+  const fileName = `zentao-file-${file.fileID}-${randomUUID()}.${normalizeFileExtension(file.fileType)}`;
+  const filePath = path.join(tempDir, fileName);
+
+  await fs.writeFile(filePath, file.data);
+
+  return {
+    fileID: file.fileID,
+    fileType: file.fileType,
+    mimeType: file.mimeType,
+    size: file.size,
+    filePath,
   };
 }
 
@@ -540,7 +573,7 @@ const tools: ZentaoTool[] = [
   {
     name: "zentao_file",
     supportVersions: [],
-    description: "文件读取。支持：读取附件/图片内容，返回 base64 编码结果",
+    description: "文件读取。支持：读取附件/图片内容，保存到系统临时目录并返回文件路径",
     inputSchema: {
       type: "object",
       properties: {
@@ -1127,6 +1160,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           libID,
           docID,
           moduleID,
+          fileID,
+          fileType,
           title,
           content,
           keywords,
@@ -1141,6 +1176,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           libID?: number;
           docID?: number;
           moduleID?: number;
+          fileID?: number;
+          fileType?: string;
           title?: string;
           content?: string;
           keywords?: string;
@@ -1270,6 +1307,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
             break;
 
+          case "readFile":
+            if (!fileID) {
+              return {
+                content: [{ type: "text", text: "缺少必要参数: fileID（文件 ID）" }],
+                isError: true,
+              };
+            }
+            if (!fileType) {
+              return {
+                content: [{ type: "text", text: "缺少必要参数: fileType（文件类型）" }],
+                isError: true,
+              };
+            }
+            result = await saveFileToTempDirectory(await zentaoClient.readFile(fileID, fileType));
+            break;
+
           default:
             return {
               content: [{ type: "text", text: `未知操作类型: ${action}` }],
@@ -1301,7 +1354,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 isError: true,
               };
             }
-            result = await zentaoClient.readFile(fileID, fileType);
+            result = await saveFileToTempDirectory(await zentaoClient.readFile(fileID, fileType));
             break;
 
           default:

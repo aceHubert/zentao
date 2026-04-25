@@ -1,4 +1,6 @@
 import { ZentaoLegacy } from "@acehubert/zentao-api";
+
+import type { ZentaoFileReadResult } from "@acehubert/zentao-api";
 import type {
   Bug,
   CloseBugParams,
@@ -20,7 +22,6 @@ import type {
   TestCaseListResponse,
   User,
   ZentaoClientConfig,
-  ZentaoFileReadResult,
   ZentaoClientVersion,
   IZentaoClient,
 } from "../types";
