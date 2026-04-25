@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/aceHubert/zentao/compare/v0.3.0...v0.4.0) (2026-04-25)
+
+### Features
+
+- **zentao-api:** 将文件读取接口从base64改为Buffer ([0240c5c](https://github.com/aceHubert/zentao/commit/0240c5c84164427997026ed2b0a3efb5057a859f))
+
 # [0.3.0](https://github.com/aceHubert/zentao/compare/v0.2.2...v0.3.0) (2026-04-21)
 
 **Note:** Version bump only for package @acehubert/zentao-api
