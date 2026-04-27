@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/aceHubert/zentao/compare/v0.4.0...v0.5.0) (2026-04-27)
+
+### Features
+
+- **config:** 支持本地配置文件管理禅道连接参数 ([a58b8ea](https://github.com/aceHubert/zentao/commit/a58b8ea118b9c6053cef03abec51f3f5c24249bf))
+
 # [0.4.0](https://github.com/aceHubert/zentao/compare/v0.3.0...v0.4.0) (2026-04-25)
 
 ### Features
