@@ -54,6 +54,12 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { createZentaoClient } from "./zentao-clients";
 import {
+  resolveZentaoConfig,
+  toConfigBoolean,
+  toConfigString,
+  type ZentaoConfigSpec,
+} from "./config";
+import {
   normalizeZentaoVersion,
   addZentaoConnectionOptions,
   verifyZentaoClientOptions,
@@ -78,12 +84,20 @@ import type {
 // 加载环境变量
 dotenv.config({ quiet: true });
 
+const mcpConfigSpecs: readonly ZentaoConfigSpec<ZentaoMcpOptions>[] = [
+  { key: "url", env: "ZENTAO_URL", parse: toConfigString },
+  { key: "account", env: "ZENTAO_ACCOUNT", parse: toConfigString },
+  { key: "password", env: "ZENTAO_PASSWORD", parse: toConfigString },
+  { key: "version", env: "ZENTAO_VERSION", parse: toConfigString },
+  { key: "skipSSL", env: "ZENTAO_SKIP_SSL", parse: toConfigBoolean },
+];
+
 export function getZentaoMcpOptions(args: ZentaoCommandArgs): ZentaoMcpOptions {
   return {
     url: getString(args, "url"),
     account: getString(args, "account"),
     password: getString(args, "password"),
-    zentaoVersion: getString(args, "zentaoVersion"),
+    version: getString(args, "version"),
     skipSSL: getBoolean(args, "skipSSL"),
   };
 }
@@ -117,13 +131,7 @@ async function saveFileToTempDirectory(file: ZentaoFileReadResult): Promise<{
 
 /** 命令参数优先，未传入时回退到环境变量。 */
 function resolveZentaoMcpOptions(options: ZentaoMcpOptions): ZentaoMcpOptions {
-  return {
-    url: options.url ?? process.env.ZENTAO_URL,
-    account: options.account ?? process.env.ZENTAO_ACCOUNT,
-    password: options.password ?? process.env.ZENTAO_PASSWORD,
-    zentaoVersion: options.zentaoVersion ?? process.env.ZENTAO_VERSION,
-    skipSSL: options.skipSSL ?? process.env.ZENTAO_SKIP_SSL === "true",
-  };
+  return resolveZentaoConfig(options, mcpConfigSpecs);
 }
 
 /** 解析 MCP Server 启动参数。 */
@@ -154,7 +162,7 @@ try {
       password: options.password,
       rejectUnauthorized: options.skipSSL ? false : undefined,
     },
-    normalizeZentaoVersion(options.zentaoVersion),
+    normalizeZentaoVersion(options.version),
   );
 } catch (error) {
   console.error(error instanceof Error ? error.message : "MCP Server 配置错误");

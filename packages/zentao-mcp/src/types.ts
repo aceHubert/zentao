@@ -7,7 +7,7 @@ export interface ZentaoClientBaseOptions {
 }
 
 export interface ZentaoMcpOptions extends ZentaoClientBaseOptions {
-  zentaoVersion?: string;
+  version?: string;
   skipSSL?: boolean;
 }
 

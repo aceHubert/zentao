@@ -4,10 +4,22 @@
  * 将 MCP 工具按资源和 action 平铺为可直接执行的 CLI commands。
  */
 
+import { createInterface } from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import dotenv from "dotenv";
 import yargs, { type Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
 import { createZentaoClient } from "./zentao-clients";
+import {
+  inspectZentaoConfig,
+  readSavedZentaoConfig,
+  removeSavedZentaoConfig,
+  resolveZentaoConfig,
+  toConfigBoolean,
+  toConfigString,
+  updateSavedZentaoConfig,
+  type ZentaoConfigSpec,
+} from "./config";
 import {
   normalizeZentaoVersion,
   addZentaoConnectionOptions,
@@ -34,26 +46,31 @@ import type {
 dotenv.config({ quiet: true });
 
 type ClientFactory = (args: ZentaoCommandArgs) => IZentaoClient;
+type ZentaoCliConfigKey = Extract<keyof ZentaoCliOptions, string>;
+
+const cliConfigKeys = ["url", "account", "password", "version", "skipSSL"] as const;
+
+const cliConfigSpecs: readonly ZentaoConfigSpec<ZentaoCliOptions>[] = [
+  { key: "url", env: "ZENTAO_URL", parse: toConfigString },
+  { key: "account", env: "ZENTAO_ACCOUNT", parse: toConfigString },
+  { key: "password", env: "ZENTAO_PASSWORD", parse: toConfigString },
+  { key: "version", env: "ZENTAO_VERSION", parse: toConfigString },
+  { key: "skipSSL", env: "ZENTAO_SKIP_SSL", parse: toConfigBoolean },
+];
 
 export function getZentaoCliOptions(args: ZentaoCommandArgs): ZentaoCliOptions {
   return {
     url: getString(args, "url"),
     account: getString(args, "account"),
     password: getString(args, "password"),
-    zentaoVersion: getString(args, "zentaoVersion"),
+    version: getString(args, "version"),
     skipSSL: getBoolean(args, "skipSSL"),
   };
 }
 
 /** 命令参数优先，未传入时回退到环境变量。 */
 export function resolveZentaoCliOptions(options: ZentaoCliOptions): ZentaoCliOptions {
-  return {
-    url: options.url ?? process.env.ZENTAO_URL,
-    account: options.account ?? process.env.ZENTAO_ACCOUNT,
-    password: options.password ?? process.env.ZENTAO_PASSWORD,
-    zentaoVersion: options.zentaoVersion ?? process.env.ZENTAO_VERSION,
-    skipSSL: options.skipSSL ?? process.env.ZENTAO_SKIP_SSL === "true",
-  };
+  return resolveZentaoConfig(options, cliConfigSpecs);
 }
 
 const commonListOptions = (parser: Argv): Argv =>
@@ -61,6 +78,171 @@ const commonListOptions = (parser: Argv): Argv =>
     type: "number",
     describe: "返回数量限制",
   });
+
+function getRequiredString(args: ZentaoCommandArgs, key: string): string {
+  const value = getString(args, key);
+  if (!value) {
+    throw new Error(`缺少必要参数: ${key}`);
+  }
+  return value;
+}
+
+function printConfigValue(key: ZentaoCliConfigKey, value: unknown): void {
+  console.log(`${key}: ${value ?? "null"}`);
+}
+
+function printConfigValues(config: ZentaoCliOptions): void {
+  for (const key in cliConfigKeys) {
+    printConfigValue(key as ZentaoCliConfigKey, config[key as ZentaoCliConfigKey]);
+  }
+}
+
+function normalizeConfigKey(key: string): ZentaoCliConfigKey {
+  if (key === "url") return "url";
+  if (key === "account") return "account";
+  if (key === "password") return "password";
+  if (key === "version") return "version";
+  if (key === "skipSSL" || key === "skip-ssl") return "skipSSL";
+  throw new Error(`不支持的配置项: ${key}，可用配置项: ${cliConfigKeys.join(", ")}`);
+}
+
+function parseConfigSetValue(key: ZentaoCliConfigKey, value: string): string | boolean {
+  if (key !== "skipSSL") return value;
+
+  const parsed = toConfigBoolean(value);
+  if (parsed === undefined) {
+    throw new Error(`配置项 ${key} 的值无效`);
+  }
+  return parsed;
+}
+
+function getConfigValue(config: ZentaoCliOptions, key: ZentaoCliConfigKey): unknown {
+  return config[key];
+}
+
+function formatInteractiveCurrentValue(key: ZentaoCliConfigKey, value: unknown): string {
+  if (value === undefined) return "未设置";
+  if (key === "password") return "已设置";
+  return String(value);
+}
+
+function formatInteractiveSavedValue(key: ZentaoCliConfigKey, value: unknown): string {
+  if (key === "password" && value !== undefined) return "******";
+  return String(value);
+}
+
+async function promptConfigSet(): Promise<void> {
+  const savedConfig = readSavedZentaoConfig();
+  const reader = createInterface({ input, output });
+  const pendingEntries: Array<[ZentaoCliConfigKey, string | boolean]> = [];
+
+  try {
+    for (const key of cliConfigKeys) {
+      const currentValue = savedConfig[key];
+      const answer = await reader.question(
+        `${key}（当前: ${formatInteractiveCurrentValue(key, currentValue)}，留空跳过）: `,
+      );
+      const trimmedAnswer = answer.trim();
+      if (!trimmedAnswer) continue;
+
+      pendingEntries.push([key, parseConfigSetValue(key, trimmedAnswer)]);
+    }
+
+    if (pendingEntries.length === 0) {
+      console.log("未修改任何配置");
+      return;
+    }
+
+    console.log("将写入以下配置:");
+    for (const [key, value] of pendingEntries) {
+      printConfigValue(key, formatInteractiveSavedValue(key, value));
+    }
+
+    const confirmed = await reader.question("确认保存? (y/N): ");
+    if (!["y", "yes"].includes(confirmed.trim().toLowerCase())) {
+      console.log("已取消");
+      return;
+    }
+
+    for (const [key, value] of pendingEntries) {
+      const nextConfig = updateSavedZentaoConfig(key, value);
+      printConfigValue(key, formatInteractiveSavedValue(key, nextConfig[key]));
+    }
+  } finally {
+    reader.close();
+  }
+}
+
+function registerConfigCommands(parser: Argv): Argv {
+  return parser.command(
+    "config <action> [key] [value]",
+    "连接配置操作：get / set / remove",
+    (command) =>
+      command
+        .positional("action", {
+          choices: ["get", "set", "remove"] as const,
+          describe: "操作类型",
+        })
+        .positional("key", {
+          type: "string",
+          choices: cliConfigKeys,
+          describe: `配置项：${cliConfigKeys.join(" / ")}`,
+        })
+        .positional("value", {
+          type: "string",
+          describe: "配置值",
+        }),
+    async (args: ZentaoCommandArgs) => {
+      const action = getRequiredString(args, "action");
+      const rawKey = getString(args, "key");
+      const rawValue = getString(args, "value");
+
+      switch (action) {
+        case "get": {
+          const inspection = inspectZentaoConfig(getZentaoCliOptions(args), cliConfigSpecs);
+          if (rawValue !== undefined) {
+            throw new Error("config get 不支持 value 参数");
+          }
+
+          if (rawKey) {
+            const key = normalizeConfigKey(rawKey);
+            printConfigValue(key, getConfigValue(inspection.values, key));
+            return;
+          }
+
+          printConfigValues(inspection.values);
+          return;
+        }
+        case "set": {
+          if (!rawKey) {
+            await promptConfigSet();
+            return;
+          }
+          if (rawValue === undefined) {
+            throw new Error("缺少必要参数: value");
+          }
+
+          const key = normalizeConfigKey(rawKey);
+          const nextConfig = updateSavedZentaoConfig(key, parseConfigSetValue(key, rawValue));
+          printConfigValue(key, nextConfig[key]);
+          return;
+        }
+        case "remove": {
+          if (!rawKey) throw new Error("缺少必要参数: key");
+          if (rawValue !== undefined) {
+            throw new Error("config remove 不支持 value 参数");
+          }
+          const key = normalizeConfigKey(rawKey);
+          removeSavedZentaoConfig(key);
+          console.log(`${key} removed`);
+          return;
+        }
+        default:
+          throw new Error(`未知操作类型: ${action}`);
+      }
+    },
+  );
+}
 
 function registerClientCommands(parser: Argv, getClient: ClientFactory): Argv {
   return parser.command(
@@ -591,7 +773,7 @@ async function main(): Promise<void> {
         password: options.password,
         rejectUnauthorized: options.skipSSL ? false : undefined,
       },
-      normalizeZentaoVersion(options.zentaoVersion),
+      normalizeZentaoVersion(options.version),
     );
     return client;
   };
@@ -609,6 +791,7 @@ async function main(): Promise<void> {
     .wrap(Math.min(100, yargs().terminalWidth()));
 
   registerClientCommands(parser, getClient);
+  registerConfigCommands(parser);
   registerBugCommands(parser, getClient);
   registerStoryCommands(parser, getClient);
   registerTestCaseCommands(parser, getClient);
