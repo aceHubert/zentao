@@ -44,7 +44,7 @@ zentao users me \
   --url "https://zentao.example.com" \
   --account "user" \
   --password "password" \
-  --zentaoVersion "v2" \
+  --version "v2" \
   --skipSSL
 ```
 

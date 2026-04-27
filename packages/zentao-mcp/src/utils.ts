@@ -77,9 +77,9 @@ export function addZentaoConnectionOptions(parser: Argv): Argv {
       type: "string",
       describe: "禅道密码；未传入时读取 ZENTAO_PASSWORD",
     })
-    .option("zentaoVersion", {
+    .option("version", {
       type: "string",
-      choices: ["legacy", "v1", "v2", "0", "1", "2"] as const,
+      choices: ["legacy", "v1", "v2"] as const,
       describe: "禅道客户端版本；未传入时读取 ZENTAO_VERSION",
     })
     .option("skipSSL", {
@@ -98,12 +98,12 @@ export function verifyZentaoClientOptions<T extends ZentaoClientBaseOptions>(
   if (!url || !account || !password) {
     throw new Error(
       [
-        `请通过${sourceName}或环境变量提供禅道连接配置:`,
-        "--url / ZENTAO_URL - 禅道服务器地址",
-        "--account / ZENTAO_ACCOUNT - 禅道用户名",
-        "--password / ZENTAO_PASSWORD - 禅道密码",
-        "--zentaoVersion / ZENTAO_VERSION - 客户端版本（可选，支持 legacy / v1 / v2）",
-        "--skipSSL / ZENTAO_SKIP_SSL - 是否跳过 SSL 验证（可选，自签名证书时设为 true）",
+        `请通过${sourceName}、本地配置或环境变量提供禅道连接配置:`,
+        "--url / config url / ZENTAO_URL - 禅道服务器地址",
+        "--account / config account / ZENTAO_ACCOUNT - 禅道用户名",
+        "--password / config password / ZENTAO_PASSWORD - 禅道密码",
+        "--version / config version / ZENTAO_VERSION - 客户端版本（可选，支持 legacy / v1 / v2）",
+        "--skipSSL / config skipSSL / ZENTAO_SKIP_SSL - 是否跳过 SSL 验证（可选，自签名证书时设为 true）",
       ].join("\n"),
     );
   }
